@@ -1,0 +1,10 @@
+# PRECAUTION: avoid production dependencies that aren't in development
+
+-r base.txt
+
+gunicorn==21.2.0  # https://github.com/benoitc/gunicorn
+# psycopg[binary]==3.1.14  # https://github.com/psycopg/psycopg
+
+# Django
+# ------------------------------------------------------------------------------
+# django-anymail==10.2  # https://github.com/anymail/django-anymail

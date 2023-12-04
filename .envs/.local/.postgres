@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=spadeapp
+POSTGRES_USER=vvetVUmtCLTHcNuizbsgJpfAMfUcHtmI
+POSTGRES_PASSWORD=Hn1zmtWiocdOY0QMk4yUs94INe75h9DApQGcKoMarCV0JGOSO8fMIdwPVfB9q84c
