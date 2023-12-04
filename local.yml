@@ -1,0 +1,53 @@
+version: '3'
+
+volumes:
+  spadeapp_local_postgres_data: {}
+  spadeapp_local_postgres_data_backups: {}
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: spadeapp_local_django
+    container_name: spadeapp_local_django
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - '8000:8000'
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: spadeapp_production_postgres
+    container_name: spadeapp_local_postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - spadeapp_local_postgres_data:/var/lib/postgresql/data
+      - spadeapp_local_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+
+  docs:
+    image: spadeapp_local_docs
+    container_name: spadeapp_local_docs
+    build:
+      context: .
+      dockerfile: ./compose/local/docs/Dockerfile
+    env_file:
+      - ./.envs/.local/.django
+    volumes:
+      - ./docs:/docs:z
+      - ./config:/app/config:z
+      - ./spadeapp:/app/spadeapp:z
+    ports:
+      - '9000:9000'
+    command: /start-docs
