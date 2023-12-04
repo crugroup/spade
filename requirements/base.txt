@@ -21,4 +21,4 @@ djangorestframework-simplejwt==5.3.0
 drf-spectacular>=0.26.5  # https://github.com/tfranzel/drf-spectacular
 
 django-taggit==5.0.1
-django-filter==23.3  # https://github.com/carltongibson/django-filter
+django-filter==23.4  # https://github.com/carltongibson/django-filter
