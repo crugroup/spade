@@ -6,8 +6,9 @@ from taggit.managers import TaggableManager
 
 class Executor(models.Model):
     name = models.CharField(max_length=100)
-    executor = models.CharField(max_length=512)
-    history_provider = models.CharField(max_length=512, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    callable = models.CharField(max_length=512)
+    history_provider_callable = models.CharField(max_length=512, null=True, blank=True)
 
 
 class Process(models.Model):

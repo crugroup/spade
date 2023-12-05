@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from rest_framework import generics, permissions, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
-from .serializers import RegisterUserSerializer, TokenSerializer, UserSerializer
+from .serializers import GroupSerializer, RegisterUserSerializer, TokenSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -51,3 +52,13 @@ class ObtainTokenView(generics.RetrieveAPIView):
         Token.objects.filter(user=self.request.user).delete()
         token, created = Token.objects.get_or_create(user=self.request.user)
         return token
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """Get a user"""
+
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Group.objects.all()
+    search_fields = ("name",)
+    filterset_fields = ("name",)

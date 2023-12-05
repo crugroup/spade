@@ -11,7 +11,9 @@ class FileFormat(models.Model):
 
 
 class FileProcessor(models.Model):
-    processor = models.CharField(max_length=512)
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    callable = models.CharField(max_length=512)
 
 
 class File(models.Model):
