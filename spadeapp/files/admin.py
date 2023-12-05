@@ -26,7 +26,7 @@ class FileProcessorAdminForm(forms.ModelForm):
 
 class FileProcessorAdmin(admin.ModelAdmin):
     form = FileProcessorAdminForm
-    list_display = ["processor"]
+    list_display = ["name", "description", "callable"]
 
 
 admin.site.register(models.FileProcessor, FileProcessorAdmin)

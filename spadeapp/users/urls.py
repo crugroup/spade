@@ -3,10 +3,11 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt import views as jwt_views
 
-from .views import ObtainTokenView, RegisterUserView, UserProfileView, UserViewSet
+from .views import GroupViewSet, ObtainTokenView, RegisterUserView, UserProfileView, UserViewSet
 
 router = routers.DefaultRouter()
 router.register(r"users", UserViewSet)
+router.register(r"groups", GroupViewSet)
 
 app_name = "users"
 urlpatterns = [

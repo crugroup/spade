@@ -48,8 +48,8 @@ class ExecutorAdminForm(forms.ModelForm):
 
 class ExecutorAdmin(admin.ModelAdmin):
     form = ExecutorAdminForm
-    list_display = ["name", "executor", "history_provider"]
-    search_fields = ["name", "executor", "history_provider"]
+    list_display = ["name", "description", "callable", "history_provider_callable"]
+    search_fields = ["name", "description", "callable", "history_provider_callable"]
 
 
 admin.site.register(models.Executor, ExecutorAdmin)
