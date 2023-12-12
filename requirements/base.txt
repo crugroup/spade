@@ -18,7 +18,7 @@ dj-rest-auth[with_social]==5.0.2  # https://github.com/iMerica/dj-rest-auth
 djangorestframework-simplejwt==5.3.1
 
 # DRF-spectacular for api documentation
-drf-spectacular>=0.26.5  # https://github.com/tfranzel/drf-spectacular
+drf-spectacular>=0.27.0  # https://github.com/tfranzel/drf-spectacular
 
 django-taggit==5.0.1
 django-filter==23.5  # https://github.com/carltongibson/django-filter

@@ -7,13 +7,13 @@ from spadeapp.processes import models as process_models
 
 
 class FileFormat(models.Model):
-    format = models.CharField(max_length=30)
+    format = models.CharField(max_length=30, unique=True)
 
 
 class FileProcessor(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
-    callable = models.CharField(max_length=512)
+    callable = models.CharField(max_length=512, unique=True)
 
 
 class File(models.Model):
@@ -46,6 +46,8 @@ class FileUpload(models.Model):
     system_params = models.JSONField(null=True, blank=True)
     user_params = models.JSONField(null=True, blank=True)
     output = models.JSONField(null=True, blank=True)
+    size = models.IntegerField(default=0)
+    rows = models.IntegerField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     linked_process_run = models.OneToOneField(
         process_models.ProcessRun, on_delete=models.SET_NULL, null=True, blank=True

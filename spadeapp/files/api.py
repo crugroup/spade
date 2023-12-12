@@ -4,7 +4,7 @@ from rest_framework import decorators, parsers, permissions, status, viewsets
 from rest_framework.response import Response
 
 from ..utils import filters as utils_filters
-from . import models, serializers
+from . import models, serializers, service
 
 
 class FileFilterSet(filters_drf.FilterSet):
@@ -45,8 +45,15 @@ class FileViewSet(viewsets.ModelViewSet):
     @decorators.action(detail=True, methods=["post"], parser_classes=[parsers.FileUploadParser])
     def upload(self, request, pk, filename, format=None):
         file = self.get_object()
-        file_upload = models.FileUpload.objects.create(file=file)
-        serializer = serializers.FileUploadSerializer(file_upload)
+
+        serializer = serializers.FileUploadSerializer(
+            service.FileService.process_file(
+                file=file,
+                data=request.data["file"].read(),
+                filename=filename,
+                user=request.user,
+            )
+        )
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
