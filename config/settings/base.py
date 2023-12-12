@@ -299,3 +299,9 @@ SPECTACULAR_SETTINGS = {
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+SPADE_FILE_PROCESSORS = {}
+
+SPADE_PROCESS_EXECUTORS = {}
+
+SPADE_LOG_PROVIDERS = {}
