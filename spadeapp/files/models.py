@@ -1,19 +1,40 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from taggit.managers import TaggableManager
 
 from spadeapp.processes import models as process_models
 
+from ..utils.imports import import_object
+
 
 class FileFormat(models.Model):
     format = models.CharField(max_length=30, unique=True)
+
+    def __str__(self):
+        return self.format
 
 
 class FileProcessor(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     callable = models.CharField(max_length=512, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        if "." not in self.callable:
+            raise ValidationError(f"`{self.callable}` must be a fully qualified python path")
+
+        try:
+            processor_callable = import_object(self.callable)
+        except ImportError:
+            raise ValidationError(f"`{self.callable}` could not be imported")
+
+        if not isinstance(processor_callable, FileProcessor):
+            raise ValidationError(f"`{self.callable}` is not a subclass of spadeapp.files.processor.FileProcessor")
 
 
 class File(models.Model):
@@ -57,3 +78,6 @@ class FileUpload(models.Model):
 
     class Meta:
         ordering = ("-pk",)
+
+    def __str__(self):
+        return f"{self.file.code} - {self.created_at}"

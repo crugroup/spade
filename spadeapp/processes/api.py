@@ -4,7 +4,7 @@ from rest_framework import decorators, permissions, status, viewsets
 from rest_framework.response import Response
 
 from ..utils import filters as utils_filters
-from . import models, serializers
+from . import models, serializers, service
 
 
 class ProcessFilterSet(filters_drf.FilterSet):
@@ -18,15 +18,16 @@ class ProcessFilterSet(filters_drf.FilterSet):
 class ProcessViewSet(viewsets.ModelViewSet):
     queryset = models.Process.objects.all()
     serializer_class = serializers.ProcessSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = ProcessFilterSet
 
     @extend_schema(request=serializers.ProcessRunParamsSerializer, responses={200: serializers.ProcessRunSerializer})
     @decorators.action(detail=True, methods=["post"])
     def run(self, request, pk):
         process = self.get_object()
-        process_run = models.ProcessRun.objects.create(process=process, user=request.user)
-        serializer = serializers.ProcessRunSerializer(process_run)
+        serializer = serializers.ProcessRunSerializer(
+            service.ProcessService.run_process(process, request.user, request.data["params"])
+        )
 
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -34,7 +35,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
 class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.ProcessRun.objects.all()
     serializer_class = serializers.ProcessRunSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = (
         "id",
         "process",
@@ -49,5 +50,5 @@ class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
 class ExecutorViewSet(viewsets.ModelViewSet):
     queryset = models.Executor.objects.all()
     serializer_class = serializers.ExecutorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
