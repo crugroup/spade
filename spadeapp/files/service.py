@@ -7,34 +7,33 @@ from .processor import FileProcessor
 
 class FileService:
     @staticmethod
-    def process_file(file: File, data, filename, user):
+    def process_file(file: File, data, filename, user, user_params: dict) -> FileUpload:
         """Process a file using the file processor."""
 
-        if object_key := file.processor.callable not in settings.FILE_PROCESSORS:
+        if (object_key := file.processor.callable) not in settings.SPADE_FILE_PROCESSORS:
             processor = import_object(object_key)
             settings.SPADE_FILE_PROCESSORS[object_key] = processor
         else:
             processor: FileProcessor = settings.SPADE_FILE_PROCESSORS[object_key]
 
-        upload = FileUpload.objects.create(
+        upload: FileUpload = FileUpload.objects.create(
             file=file,
             name=filename,
             user=user,
             size=len(data),
+            user_params=user_params,
         )
 
         try:
             result = processor.process(filename, data, file.system_params, file.user_params)
-            upload.update(
-                result=result.result,
-                rows=result.rows,
-                output=result.output,
-                error_message=result.error_message,
-            )
-            return upload
+            upload.result = result.result
+            upload.rows = result.rows
+            upload.output = result.output
+            upload.error_message = result.error_message
+            upload.save()
         except Exception as e:
-            upload.update(
-                result=FileUpload.Results.FAILED,
-                error_message=str(e),
-            )
-            return upload
+            upload.result = FileUpload.Results.FAILED
+            upload.error_message = str(e)
+            upload.save()
+
+        return upload

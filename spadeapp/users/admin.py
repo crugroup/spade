@@ -18,8 +18,9 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
 class UserAdmin(auth_admin.UserAdmin):
     form = UserAdminChangeForm
     add_form = UserAdminCreationForm
+    list_display_links = ("email", "first_name", "last_name")
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
+        (None, {"fields": ("first_name", "last_name", "email", "password")}),
         (
             _("Permissions"),
             {

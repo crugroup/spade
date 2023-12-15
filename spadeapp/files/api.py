@@ -18,21 +18,21 @@ class FileFilterSet(filters_drf.FilterSet):
 class FileFormatViewSet(viewsets.ModelViewSet):
     queryset = models.FileFormat.objects.all()
     serializer_class = serializers.FileFormatSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
 
 
 class FileProcessorViewSet(viewsets.ModelViewSet):
     queryset = models.FileProcessor.objects.all()
     serializer_class = serializers.FileProcessorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
 
 
 class FileViewSet(viewsets.ModelViewSet):
     queryset = models.File.objects.all()
     serializer_class = serializers.FileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = FileFilterSet
 
     @extend_schema(
@@ -52,6 +52,7 @@ class FileViewSet(viewsets.ModelViewSet):
                 data=request.data["file"].read(),
                 filename=filename,
                 user=request.user,
+                user_params=request.data["params"],
             )
         )
 
@@ -61,5 +62,5 @@ class FileViewSet(viewsets.ModelViewSet):
 class FileUploadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.FileUpload.objects.all()
     serializer_class = serializers.FileUploadSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = ("id", "file", "result", "user", "created_at")
