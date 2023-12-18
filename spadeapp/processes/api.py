@@ -44,7 +44,21 @@ class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
         "result",
         "created_at",
     )
-    filterset_class = None
+
+    def list(self, request, *args, **kwargs):
+        process_id = self.request.query_params.get("process", None)
+        if not process_id:
+            return super().list(request, *args, **kwargs)
+
+        try:
+            process = models.Process.objects.get(id=process_id)
+        except models.Process.DoesNotExist:
+            return Response([])
+
+        serializer = serializers.ProcessRunSerializer(
+            service.ProcessService.get_runs(process, request, *args, **kwargs), many=True
+        )
+        return Response(serializer.data)
 
 
 class ExecutorViewSet(viewsets.ModelViewSet):
