@@ -30,7 +30,7 @@ class FileProcessor(models.Model):
 
         try:
             processor_callable = import_object(self.callable)
-        except ImportError:
+        except (ImportError, AttributeError):
             raise ValidationError(f"`{self.callable}` could not be imported")
 
         if not isinstance(processor_callable, FileProcessor):

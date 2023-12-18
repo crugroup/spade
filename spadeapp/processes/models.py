@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from taggit.managers import TaggableManager
 
 from ..processes.executor import Executor as BaseExecutor
+from ..processes.history_provider import HistoryProvider as BaseHistoryProvider
 from ..utils.imports import import_object
 
 
@@ -23,11 +24,28 @@ class Executor(models.Model):
 
         try:
             executor_callable = import_object(self.callable)
-        except ImportError:
+        except (ImportError, AttributeError):
             raise ValidationError(f"`{self.callable}` could not be imported")
 
         if not isinstance(executor_callable, type) or not issubclass(executor_callable, BaseExecutor):
             raise ValidationError(f"`{self.callable}` is not a subclass of spadeapp.processes.executor.Executor")
+
+        if self.history_provider_callable and "." not in self.history_provider_callable:
+            raise ValidationError(f"`{self.history_provider_callable}` must be a fully qualified python path")
+
+        if self.history_provider_callable:
+            try:
+                history_provider_callable = import_object(self.history_provider_callable)
+            except (ImportError, AttributeError):
+                raise ValidationError(f"`{self.history_provider_callable}` could not be imported")
+
+            if not isinstance(history_provider_callable, type) or not issubclass(
+                history_provider_callable, BaseHistoryProvider
+            ):
+                raise ValidationError(
+                    f"`{self.history_provider_callable}` "
+                    + "is not a subclass of spadeapp.processes.history_provider.HistoryProvider"
+                )
 
 
 class Process(models.Model):

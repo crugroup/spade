@@ -2,6 +2,7 @@ from django.conf import settings
 
 from ..utils.imports import import_object
 from .executor import Executor
+from .history_provider import HistoryProvider
 from .models import Process, ProcessRun
 
 
@@ -37,3 +38,18 @@ class ProcessService:
             run.save()
 
         return run
+
+    @staticmethod
+    def get_runs(process: Process, request, *args, **kwargs):
+        """Get the runs for a process."""
+
+        if not process.executor.history_provider_callable:
+            return ProcessRun.objects.filter(process=process).order_by("-pk")
+
+        if (object_key := process.executor.history_provider_callable) not in settings.SPADE_HISTORY_PROVIDERS:
+            history_provider = import_object(object_key)
+            settings.SPADE_HISTORY_PROVIDERS[object_key] = history_provider
+        else:
+            history_provider: HistoryProvider = settings.SPADE_HISTORY_PROVIDERS[object_key]
+
+        return history_provider.get_runs(process, request, *args, **kwargs)
