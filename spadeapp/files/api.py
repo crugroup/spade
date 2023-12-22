@@ -43,14 +43,14 @@ class FileViewSet(viewsets.ModelViewSet):
         responses={200: serializers.FileUploadSerializer},
     )
     @decorators.action(detail=True, methods=["post"], parser_classes=[parsers.FileUploadParser])
-    def upload(self, request, pk, filename, format=None):
+    def upload(self, request, pk, format=None):
         file = self.get_object()
 
         serializer = serializers.FileUploadSerializer(
             service.FileService.process_file(
                 file=file,
                 data=request.data["file"].read(),
-                filename=filename,
+                filename=request.data["filename"],
                 user=request.user,
                 user_params=request.data["params"],
             )

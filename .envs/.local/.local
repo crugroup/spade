@@ -1,3 +1,3 @@
 DJANGO_SETTINGS_MODULE=config.settings.local
-DATABASE_URL=postgres://vvetVUmtCLTHcNuizbsgJpfAMfUcHtmI:Hn1zmtWiocdOY0QMk4yUs94INe75h9DApQGcKoMarCV0JGOSO8fMIdwPVfB9q84c@localhost:5432/spadeapp
+DATABASE_URL=postgres://vvetVUmtCLTHcNuizbsgJpfAMfUcHtmI:Hn1zmtWiocdOY0QMk4yUs94INe75h9DApQGcKoMarCV0JGOSO8fMIdwPVfB9q84c@127.0.0.1:5432/spadeapp
 USE_DOCKER=no
