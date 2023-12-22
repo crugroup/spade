@@ -7,6 +7,7 @@ from taggit.managers import TaggableManager
 from spadeapp.processes import models as process_models
 
 from ..utils.imports import import_object
+from .processor import FileProcessor as BaseFileProcessor
 
 
 class FileFormat(models.Model):
@@ -33,7 +34,7 @@ class FileProcessor(models.Model):
         except (ImportError, AttributeError):
             raise ValidationError(f"`{self.callable}` could not be imported")
 
-        if not isinstance(processor_callable, FileProcessor):
+        if not isinstance(processor_callable, type) or not issubclass(processor_callable, BaseFileProcessor):
             raise ValidationError(f"`{self.callable}` is not a subclass of spadeapp.files.processor.FileProcessor")
 
 

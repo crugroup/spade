@@ -55,3 +55,7 @@ docker-compose -f local.yml up -d postgres
 ./manage.py runserver
 
 ```
+
+### Examples
+
+`spadeapp.examples` contains some examples for basic objects such as executor, processor, and history provider.

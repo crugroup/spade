@@ -1,6 +1,7 @@
 """
 Base settings to build other settings files upon.
 """
+import datetime
 from pathlib import Path
 
 import environ
@@ -263,6 +264,9 @@ ACCOUNT_ADAPTER = "spadeapp.users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "spadeapp.users.adapters.SocialAccountAdapter"
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=30),
+}
 
 # django-rest-framework
 # -------------------------------------------------------------------------------
@@ -288,6 +292,12 @@ REST_FRAMEWORK = {
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
 CORS_URLS_REGEX = r"^/api/.*$"
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    env("FRONTEND_EXTERNAL_URL", default="https://localhost"),
+]
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
