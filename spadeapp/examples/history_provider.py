@@ -3,8 +3,8 @@ from spadeapp.processes.models import Process, ProcessRun
 
 
 class ExampleHistoryProvider(HistoryProvider):
-    @staticmethod
-    def get_runs(process: Process, request, *args, **kwargs):
+    @classmethod
+    def get_runs(cls, process: Process, request, *args, **kwargs):
         return (
             ProcessRun(
                 process=process,

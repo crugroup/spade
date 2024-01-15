@@ -14,8 +14,8 @@ class FileResult:
 
 
 class FileProcessor:
-    @staticmethod
-    def process(filename, data, system_params, user_params) -> FileResult:
+    @classmethod
+    def process(cls, filename, data, system_params: dict | None, user_params: dict | None) -> FileResult:
         """Process a file using the file processor."""
 
         return FileResult(result="success")
