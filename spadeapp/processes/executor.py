@@ -13,8 +13,8 @@ class RunResult:
 
 
 class Executor:
-    @staticmethod
-    def run(system_params, user_params) -> RunResult:
+    @classmethod
+    def run(cls, system_params, user_params) -> RunResult:
         """Execute a process using the executor."""
 
         return RunResult(result="success")

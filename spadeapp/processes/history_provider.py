@@ -5,6 +5,6 @@ if typing.TYPE_CHECKING:
 
 
 class HistoryProvider:
-    @staticmethod
-    def get_runs(process: "Process", request, *args, **kwargs) -> typing.Iterable["ProcessRun"]:
+    @classmethod
+    def get_runs(cls, process: "Process", request, *args, **kwargs) -> typing.Iterable["ProcessRun"]:
         raise NotImplementedError()

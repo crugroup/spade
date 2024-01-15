@@ -299,7 +299,7 @@ CORS_ALLOWED_ORIGINS = [
     env("FRONTEND_EXTERNAL_URL", default="https://localhost"),
 ]
 
-CORS_ALLOW_HEADERS = ["content-disposition", "x-requested-with", "authorization"]
+CORS_ALLOW_HEADERS = ["content-disposition", "x-requested-with", "authorization", "content-type"]
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
