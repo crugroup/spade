@@ -19,31 +19,35 @@ class Executor(models.Model):
         return self.name
 
     def clean(self):
-        if "." not in self.callable:
-            raise ValidationError(f"`{self.callable}` must be a fully qualified python path")
+        self.validate(self.callable, self.history_provider_callable)
+
+    @staticmethod
+    def validate(callable_value: str, history_provider_callable_value: str | None, exception_class=ValidationError):
+        if "." not in callable_value:
+            raise ValidationError(f"`{callable_value}` must be a fully qualified python path")
 
         try:
-            executor_callable = import_object(self.callable)
+            executor_callable = import_object(callable_value)
         except (ImportError, AttributeError):
-            raise ValidationError(f"`{self.callable}` could not be imported")
+            raise ValidationError(f"`{callable_value}` could not be imported")
 
         if not isinstance(executor_callable, type) or not issubclass(executor_callable, BaseExecutor):
-            raise ValidationError(f"`{self.callable}` is not a subclass of spadeapp.processes.executor.Executor")
+            raise ValidationError(f"`{callable_value}` is not a subclass of spadeapp.processes.executor.Executor")
 
-        if self.history_provider_callable and "." not in self.history_provider_callable:
-            raise ValidationError(f"`{self.history_provider_callable}` must be a fully qualified python path")
+        if history_provider_callable_value and "." not in history_provider_callable_value:
+            raise ValidationError(f"`{history_provider_callable_value}` must be a fully qualified python path")
 
-        if self.history_provider_callable:
+        if history_provider_callable_value:
             try:
-                history_provider_callable = import_object(self.history_provider_callable)
+                history_provider_callable = import_object(history_provider_callable_value)
             except (ImportError, AttributeError):
-                raise ValidationError(f"`{self.history_provider_callable}` could not be imported")
+                raise ValidationError(f"`{history_provider_callable_value}` could not be imported")
 
             if not isinstance(history_provider_callable, type) or not issubclass(
                 history_provider_callable, BaseHistoryProvider
             ):
                 raise ValidationError(
-                    f"`{self.history_provider_callable}` "
+                    f"`{history_provider_callable_value}` "
                     + "is not a subclass of spadeapp.processes.history_provider.HistoryProvider"
                 )
 

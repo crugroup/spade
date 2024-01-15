@@ -26,16 +26,20 @@ class FileProcessor(models.Model):
         return self.name
 
     def clean(self):
-        if "." not in self.callable:
-            raise ValidationError(f"`{self.callable}` must be a fully qualified python path")
+        self.validate(self.callable)
+
+    @staticmethod
+    def validate(callable_value: str, exception_class=ValidationError):
+        if "." not in callable_value:
+            raise exception_class(f"`{callable_value}` must be a fully qualified python path")
 
         try:
-            processor_callable = import_object(self.callable)
+            processor_callable = import_object(callable_value)
         except (ImportError, AttributeError):
-            raise ValidationError(f"`{self.callable}` could not be imported")
+            raise exception_class(f"`{callable_value}` could not be imported")
 
         if not isinstance(processor_callable, type) or not issubclass(processor_callable, BaseFileProcessor):
-            raise ValidationError(f"`{self.callable}` is not a subclass of spadeapp.files.processor.FileProcessor")
+            raise exception_class(f"`{callable_value}` is not a subclass of spadeapp.files.processor.FileProcessor")
 
 
 class File(models.Model):
