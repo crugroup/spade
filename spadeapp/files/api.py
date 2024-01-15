@@ -42,7 +42,9 @@ class FileViewSet(viewsets.ModelViewSet):
         ],
         responses={200: serializers.FileUploadSerializer},
     )
-    @decorators.action(detail=True, methods=["post"], parser_classes=[parsers.FileUploadParser])
+    @decorators.action(
+        detail=True, methods=["post"], parser_classes=[parsers.MultiPartParser, parsers.FileUploadParser]
+    )
     def upload(self, request, pk, format=None):
         file = self.get_object()
 
@@ -52,7 +54,7 @@ class FileViewSet(viewsets.ModelViewSet):
                 data=request.data["file"].read(),
                 filename=request.data["filename"],
                 user=request.user,
-                user_params=request.data["params"],
+                user_params=request.data.get("params"),
             )
         )
 

@@ -18,6 +18,10 @@ class FileProcessorSerializer(serializers.ModelSerializer):
         model = models.FileProcessor
         fields = "__all__"
 
+    def validate(self, attrs):
+        models.FileProcessor.validate(attrs["callable"], serializers.ValidationError)
+        return attrs
+
 
 class FileSerializer(serializers.ModelSerializer):
     class Meta:
