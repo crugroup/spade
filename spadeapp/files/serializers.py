@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from taggit.serializers import TaggitSerializer, TagListSerializerField
 
 from . import models
 
@@ -23,7 +24,9 @@ class FileProcessorSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class FileSerializer(serializers.ModelSerializer):
+class FileSerializer(TaggitSerializer, serializers.ModelSerializer):
+    tags = TagListSerializerField()
+
     class Meta:
         model = models.File
         fields = "__all__"

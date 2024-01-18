@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from . import api
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 
 router.register(r"processes", api.ProcessViewSet)
 router.register(r"processruns", api.ProcessRunViewSet)
