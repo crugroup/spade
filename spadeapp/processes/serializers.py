@@ -1,9 +1,12 @@
 from rest_framework import serializers
+from taggit.serializers import TaggitSerializer, TagListSerializerField
 
 from . import models
 
 
-class ProcessSerializer(serializers.ModelSerializer):
+class ProcessSerializer(TaggitSerializer, serializers.ModelSerializer):
+    tags = TagListSerializerField()
+
     class Meta:
         model = models.Process
         fields = "__all__"
@@ -23,3 +26,7 @@ class ExecutorSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Executor
         fields = "__all__"
+
+    def validate(self, attrs):
+        models.Executor.validate(attrs["callable"], attrs["history_provider_callable"], serializers.ValidationError)
+        return attrs

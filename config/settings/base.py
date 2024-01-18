@@ -5,6 +5,7 @@ import datetime
 from pathlib import Path
 
 import environ
+from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # spadeapp/
@@ -288,6 +289,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "100/hour", "user": "100000/hour"},
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "URL_FORMAT_OVERRIDE": None,
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
@@ -299,7 +301,10 @@ CORS_ALLOWED_ORIGINS = [
     env("FRONTEND_EXTERNAL_URL", default="https://localhost"),
 ]
 
-CORS_ALLOW_HEADERS = ["content-disposition", "x-requested-with", "authorization", "content-type"]
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "content-disposition",
+)
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
