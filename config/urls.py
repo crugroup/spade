@@ -15,4 +15,5 @@ urlpatterns = [
     path("api/v1/", include("spadeapp.users.urls", namespace="api")),
     path("api/", include("spadeapp.files.urls", namespace="files")),
     path("api/", include("spadeapp.processes.urls", namespace="processes")),
+    path("api/", include("spadeapp.utils.urls", namespace="utils")),
 ]
