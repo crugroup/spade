@@ -1,0 +1,41 @@
+name: Docker Image CI
+
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - "develop"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5.5.0
+        with:
+          images: ghcr.io/crugroup/spade
+  
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5.1.0
+        with:
+          context: .
+          file: ./compose/production/django/Dockerfile
+          push: ${{ github.event_name != 'pull_request' && github.event.pull_request.merged }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
