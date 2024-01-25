@@ -20,6 +20,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProcessSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = ProcessFilterSet
+    search_fields = ("code", "description")
 
     @extend_schema(request=serializers.ProcessRunParamsSerializer, responses={200: serializers.ProcessRunSerializer})
     @decorators.action(detail=True, methods=["post"])
@@ -66,3 +67,4 @@ class ExecutorViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ExecutorSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
+    search_fields = ("name", "description")
