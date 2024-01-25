@@ -2,9 +2,13 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: 
+      - "develop"
+    tags:
+      - "v*"
   pull_request:
-    branches: [ "develop" ]
+    branches:
+      - "develop"
 
 jobs:
   build-and-push:
@@ -27,7 +31,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.5.0
         with:
-          images: ghcr.io/crugroup/spade
+          images: crugroup/spade
   
       - name: Build and push Docker image
         uses: docker/build-push-action@v5.1.0
