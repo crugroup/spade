@@ -27,6 +27,7 @@ class FileProcessorViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FileProcessorSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
+    search_fields = ("name", "description")
 
 
 class FileViewSet(viewsets.ModelViewSet):
@@ -34,6 +35,7 @@ class FileViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FileSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = FileFilterSet
+    search_fields = ("code", "description")
 
     @extend_schema(
         request={"*/*": serializers.FileContentSerializer},
