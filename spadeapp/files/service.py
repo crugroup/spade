@@ -1,8 +1,10 @@
 from django.conf import settings
+from spadesdk.file_processor import File as SDKFile
+from spadesdk.file_processor import FileProcessor
+from spadesdk.file_processor import FileUpload as SDKFileUpload
 
 from ..utils.imports import import_object
 from .models import File, FileUpload
-from .processor import FileProcessor
 
 
 class FileService:
@@ -25,7 +27,16 @@ class FileService:
         )
 
         try:
-            result = processor.process(filename, data, file.system_params, file.user_params)
+            result: SDKFileUpload = processor.process(
+                SDKFile(
+                    name=filename,
+                    format=file.format.format,
+                    system_params=file.system_params,
+                ),
+                filename=filename,
+                data=data,
+                user_params=user_params,
+            )
             upload.result = result.result
             upload.rows = result.rows
             upload.output = result.output
