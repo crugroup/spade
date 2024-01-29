@@ -2,6 +2,8 @@ name: Docker Image CI
 
 on:
   push:
+    branches:
+      - "develop"
     tags:
       - "v*"
   pull_request:
@@ -10,6 +12,7 @@ on:
 
 jobs:
   build-and-push:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,6 +39,6 @@ jobs:
         with:
           context: .
           file: ./compose/production/django/Dockerfile
-          push: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged }}
+          push: ${{ github.event.pull_request.merged == true }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
