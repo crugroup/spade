@@ -28,5 +28,7 @@ class ExecutorSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate(self, attrs):
-        models.Executor.validate(attrs["callable"], attrs["history_provider_callable"], serializers.ValidationError)
+        models.Executor.validate(
+            attrs["callable"], attrs.get("history_provider_callable"), serializers.ValidationError
+        )
         return attrs

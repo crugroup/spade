@@ -22,15 +22,21 @@ class ProcessViewSet(viewsets.ModelViewSet):
     filterset_class = ProcessFilterSet
     search_fields = ("code", "description")
 
-    @extend_schema(request=serializers.ProcessRunParamsSerializer, responses={200: serializers.ProcessRunSerializer})
+    @extend_schema(
+        request=serializers.ProcessRunParamsSerializer,
+        responses={200: serializers.ProcessRunSerializer, 500: serializers.ProcessRunSerializer},
+    )
     @decorators.action(detail=True, methods=["post"])
     def run(self, request, pk):
         process = self.get_object()
         serializer = serializers.ProcessRunSerializer(
-            service.ProcessService.run_process(process, request.user, request.data["params"])
+            run := service.ProcessService.run_process(process, request.user, request.data["params"])
         )
 
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        return Response(
+            status=status.HTTP_200_OK if run.status != "error" else status.HTTP_500_INTERNAL_SERVER_ERROR,
+            data=serializer.data,
+        )
 
 
 class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
