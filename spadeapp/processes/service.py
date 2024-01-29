@@ -1,8 +1,12 @@
+import typing
+
 from django.conf import settings
+from spadesdk.executor import Executor
+from spadesdk.executor import Process as SDKProcess
+from spadesdk.executor import RunResult as SDKRunResult
+from spadesdk.history_provider import HistoryProvider
 
 from ..utils.imports import import_object
-from .executor import Executor
-from .history_provider import HistoryProvider
 from .models import Process, ProcessRun
 
 
@@ -25,7 +29,13 @@ class ProcessService:
         )
 
         try:
-            result = executor.run(process.system_params, user_params)
+            result: SDKRunResult = executor.run(
+                SDKProcess(
+                    code=process.code,
+                    system_params=process.system_params,
+                ),
+                user_params,
+            )
             run.result = result.result
             run.output = result.output
             run.error_message = result.error_message
@@ -40,7 +50,7 @@ class ProcessService:
         return run
 
     @staticmethod
-    def get_runs(process: Process, request, *args, **kwargs):
+    def get_runs(process: Process, request, *args, **kwargs) -> typing.Iterable[ProcessRun]:
         """Get the runs for a process."""
 
         if not process.executor.history_provider_callable:
@@ -52,4 +62,14 @@ class ProcessService:
         else:
             history_provider: HistoryProvider = settings.SPADE_HISTORY_PROVIDERS[object_key]
 
-        return history_provider.get_runs(process, request, *args, **kwargs)
+        provider_results = history_provider.get_runs(process, request, *args, **kwargs)
+        return (
+            ProcessRun(
+                process=process,
+                status=result.status,
+                result=result.result,
+                output=result.output,
+                error_message=result.error_message,
+            )
+            for result in provider_results
+        )

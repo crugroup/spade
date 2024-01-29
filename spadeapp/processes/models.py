@@ -2,10 +2,10 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from spadesdk.executor import Executor as SDKExecutor
+from spadesdk.history_provider import HistoryProvider as SDKHistoryProvider
 from taggit.managers import TaggableManager
 
-from ..processes.executor import Executor as BaseExecutor
-from ..processes.history_provider import HistoryProvider as BaseHistoryProvider
 from ..utils.imports import import_object
 
 
@@ -31,8 +31,8 @@ class Executor(models.Model):
         except (ImportError, AttributeError):
             raise ValidationError(f"`{callable_value}` could not be imported")
 
-        if not isinstance(executor_callable, type) or not issubclass(executor_callable, BaseExecutor):
-            raise ValidationError(f"`{callable_value}` is not a subclass of spadeapp.processes.executor.Executor")
+        if not isinstance(executor_callable, type) or not issubclass(executor_callable, SDKExecutor):
+            raise ValidationError(f"`{callable_value}` is not a subclass of spadesdk.executor.Executor")
 
         if history_provider_callable_value and "." not in history_provider_callable_value:
             raise ValidationError(f"`{history_provider_callable_value}` must be a fully qualified python path")
@@ -44,11 +44,11 @@ class Executor(models.Model):
                 raise ValidationError(f"`{history_provider_callable_value}` could not be imported")
 
             if not isinstance(history_provider_callable, type) or not issubclass(
-                history_provider_callable, BaseHistoryProvider
+                history_provider_callable, SDKHistoryProvider
             ):
                 raise ValidationError(
                     f"`{history_provider_callable_value}` "
-                    + "is not a subclass of spadeapp.processes.history_provider.HistoryProvider"
+                    + "is not a subclass of spadesdk.history_provider.HistoryProvider"
                 )
 
 

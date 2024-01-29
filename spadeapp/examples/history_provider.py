@@ -1,21 +1,20 @@
-from spadeapp.processes.history_provider import HistoryProvider
-from spadeapp.processes.models import Process, ProcessRun
+from spadesdk.history_provider import HistoryProvider, Process, RunResult
 
 
 class ExampleHistoryProvider(HistoryProvider):
     @classmethod
     def get_runs(cls, process: Process, request, *args, **kwargs):
         return (
-            ProcessRun(
+            RunResult(
                 process=process,
-                result=ProcessRun.Results.SUCCESS,
-                status=ProcessRun.Statuses.FINISHED,
+                result="success",
+                status="finished",
                 output={"foo": "bar"},
             ),
-            ProcessRun(
+            RunResult(
                 process=process,
-                result=ProcessRun.Results.FAILED,
-                status=ProcessRun.Statuses.FINISHED,
+                result="failed",
+                status="finished",
                 output={"foo": "bar"},
                 error_message="Something went wrong",
             ),

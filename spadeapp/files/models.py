@@ -2,12 +2,12 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from spadesdk.file_processor import FileProcessor as SDKFileProcessor
 from taggit.managers import TaggableManager
 
 from spadeapp.processes import models as process_models
 
 from ..utils.imports import import_object
-from .processor import FileProcessor as BaseFileProcessor
 
 
 class FileFormat(models.Model):
@@ -38,8 +38,8 @@ class FileProcessor(models.Model):
         except (ImportError, AttributeError):
             raise exception_class(f"`{callable_value}` could not be imported")
 
-        if not isinstance(processor_callable, type) or not issubclass(processor_callable, BaseFileProcessor):
-            raise exception_class(f"`{callable_value}` is not a subclass of spadeapp.files.processor.FileProcessor")
+        if not isinstance(processor_callable, type) or not issubclass(processor_callable, SDKFileProcessor):
+            raise exception_class(f"`{callable_value}` is not a subclass of spadesdk.file_processor.FileProcessor")
 
 
 class File(models.Model):
