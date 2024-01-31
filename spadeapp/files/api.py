@@ -67,4 +67,4 @@ class FileUploadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.FileUpload.objects.all()
     serializer_class = serializers.FileUploadSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    filterset_fields = ("id", "file", "result", "user", "created_at")
+    filterset_fields = ("id", "file", "name", "size", "rows", "result", "user", "created_at")

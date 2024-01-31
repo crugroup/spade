@@ -1,5 +1,5 @@
 # define an alias for the specific python version used in this file.
-FROM python:3.11.7-slim-bullseye as python
+FROM python:3.11-slim-bullseye as python
 
 # Python build stage
 FROM python as python-build-stage
@@ -9,9 +9,7 @@ ARG BUILD_ENVIRONMENT=local
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
-  build-essential \
-  # psycopg2 dependencies
-  libpq-dev
+  build-essential
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -36,7 +34,7 @@ WORKDIR ${APP_HOME}
 
 # devcontainer dependencies and utils
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  sudo git bash-completion nano ssh
+  sudo git bash-completion ssh
 
 # Create devcontainer user and add it to sudoers
 RUN groupadd --gid 1000 dev-user \
@@ -47,8 +45,6 @@ RUN groupadd --gid 1000 dev-user \
 
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
-  libpq-dev \
   # Translations dependencies
   gettext \
   # cleaning up unused files
