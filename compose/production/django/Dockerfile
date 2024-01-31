@@ -1,6 +1,6 @@
 
 # define an alias for the specific python version used in this file.
-FROM python:3.11.7-slim-bullseye as python
+FROM python:3.11-slim-bullseye as python
 
 # Python build stage
 FROM python as python-build-stage
@@ -10,9 +10,7 @@ ARG BUILD_ENVIRONMENT=production
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
-  build-essential \
-  # psycopg2 dependencies
-  libpq-dev
+  build-essential
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -40,8 +38,6 @@ RUN addgroup --system django \
 
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
-  libpq-dev \
   # Translations dependencies
   gettext \
   # cleaning up unused files
