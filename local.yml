@@ -2,7 +2,6 @@ version: '3'
 
 volumes:
   spadeapp_local_postgres_data: {}
-  spadeapp_local_postgres_data_backups: {}
 
 services:
   django:
@@ -23,16 +22,12 @@ services:
     command: /start
 
   postgres:
-    build:
-      context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: spadeapp_production_postgres
+    image: postgres:16
     container_name: spadeapp_local_postgres
     ports:
       - '5432:5432'
     volumes:
       - spadeapp_local_postgres_data:/var/lib/postgresql/data
-      - spadeapp_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
 
