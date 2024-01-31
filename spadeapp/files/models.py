@@ -16,6 +16,9 @@ class FileFormat(models.Model):
     def __str__(self):
         return self.format
 
+    class Meta:
+        ordering = ("-pk",)
+
 
 class FileProcessor(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -41,6 +44,8 @@ class FileProcessor(models.Model):
         if not isinstance(processor_callable, type) or not issubclass(processor_callable, SDKFileProcessor):
             raise exception_class(f"`{callable_value}` is not a subclass of spadesdk.file_processor.FileProcessor")
 
+    class Meta:
+        ordering = ("-pk",)
 
 class File(models.Model):
     code = models.CharField(max_length=100, unique=True)

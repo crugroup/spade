@@ -5,7 +5,7 @@ from . import models
 
 
 class ProcessSerializer(TaggitSerializer, serializers.ModelSerializer):
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(required=False)
 
     class Meta:
         model = models.Process

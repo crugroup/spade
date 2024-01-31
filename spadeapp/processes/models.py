@@ -51,6 +51,9 @@ class Executor(models.Model):
                     + "is not a subclass of spadesdk.history_provider.HistoryProvider"
                 )
 
+    class Meta:
+        ordering = ("-pk",)
+
 
 class Process(models.Model):
     code = models.CharField(max_length=100, unique=True)
