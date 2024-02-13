@@ -1,8 +1,8 @@
 version: '3'
 
 volumes:
+  production_django_media: {}
   production_postgres_data: {}
-  production_traefik: {}
 
 services:
   django:
@@ -19,6 +19,16 @@ services:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     command: /start
+    ports:
+      - '8000:5000'
+  
+  spadeui:
+    image: ghcr.io/crugroup/spadeui:develop
+    container_name: spadeapp_production_spadeui
+    depends_on:
+      - django
+    ports:
+      - '3000:80'
 
   postgres:
     image: postgres:16
@@ -26,19 +36,3 @@ services:
       - production_postgres_data:/var/lib/postgresql/data
     env_file:
       - ./.envs/.production/.postgres
-
-  traefik:
-    build:
-      context: .
-      dockerfile: ./compose/production/traefik/Dockerfile
-    image: spadeapp_production_traefik
-    depends_on:
-      - django
-    volumes:
-      - production_traefik:/etc/traefik/acme
-    ports:
-      - '0.0.0.0:80:80'
-      - '0.0.0.0:443:443'
-
-  redis:
-    image: redis:6
