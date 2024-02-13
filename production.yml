@@ -14,7 +14,6 @@ services:
       - production_django_media:/app/spadeapp/media
     depends_on:
       - postgres
-      - redis
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
