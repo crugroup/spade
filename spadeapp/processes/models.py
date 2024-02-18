@@ -15,6 +15,9 @@ class Executor(models.Model):
     callable = models.CharField(max_length=512)
     history_provider_callable = models.CharField(max_length=512, null=True, blank=True)
 
+    class Meta:
+        ordering = ("-pk",)
+
     def __str__(self):
         return self.name
 
@@ -22,7 +25,11 @@ class Executor(models.Model):
         self.validate(self.callable, self.history_provider_callable)
 
     @staticmethod
-    def validate(callable_value: str, history_provider_callable_value: str | None, exception_class=ValidationError):
+    def validate(
+        callable_value: str,
+        history_provider_callable_value: str | None,
+        exception_class=ValidationError,
+    ):
         if "." not in callable_value:
             raise ValidationError(f"`{callable_value}` must be a fully qualified python path")
 
@@ -51,9 +58,6 @@ class Executor(models.Model):
                     + "is not a subclass of spadesdk.history_provider.HistoryProvider"
                 )
 
-    class Meta:
-        ordering = ("-pk",)
-
 
 class Process(models.Model):
     code = models.CharField(max_length=100, unique=True)
@@ -64,11 +68,11 @@ class Process(models.Model):
     user_params = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.code
-
     class Meta:
         ordering = ("-pk",)
+
+    def __str__(self):
+        return self.code
 
 
 class ProcessRun(models.Model):
@@ -84,8 +88,8 @@ class ProcessRun(models.Model):
         ERROR = "error", _("Error")
 
     process = models.ForeignKey(Process, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=Statuses.choices, default=Statuses.NEW)
-    result = models.CharField(max_length=20, choices=Results.choices, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=Statuses, default=Statuses.NEW)
+    result = models.CharField(max_length=20, choices=Results, null=True, blank=True)
     system_params = models.JSONField(null=True, blank=True)
     user_params = models.JSONField(null=True, blank=True)
     output = models.JSONField(null=True, blank=True)

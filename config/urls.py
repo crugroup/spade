@@ -1,3 +1,4 @@
+from dj_rest_auth.registration.views import VerifyEmailView
 from dj_rest_auth.views import PasswordResetConfirmView
 from django.conf import settings
 from django.contrib import admin
@@ -21,5 +22,9 @@ urlpatterns = [
         r"^api/v1/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})$",
         PasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
+    ),
+    path("api/v1/registration/confirm-email", VerifyEmailView.as_view(), name="account_email_verification_sent"),
+    re_path(
+        r"api/v1/registration/confirm-email/(?P<key>[-:\w]+)$", VerifyEmailView.as_view(), name="account_confirm_email"
     ),
 ]

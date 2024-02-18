@@ -15,11 +15,12 @@ class ProcessService:
     def run_process(process: Process, user, user_params: dict) -> ProcessRun:
         """Run a process using the executor."""
 
+        executor: Executor
         if (object_key := process.executor.callable) not in settings.SPADE_PROCESS_EXECUTORS:
             executor = import_object(object_key)
             settings.SPADE_PROCESS_EXECUTORS[object_key] = executor
         else:
-            executor: Executor = settings.SPADE_PROCESS_EXECUTORS[object_key]
+            executor = settings.SPADE_PROCESS_EXECUTORS[object_key]
 
         run: ProcessRun = ProcessRun.objects.create(
             process=process,
@@ -56,11 +57,12 @@ class ProcessService:
         if not process.executor.history_provider_callable:
             return ProcessRun.objects.filter(process=process).order_by("-pk")
 
+        history_provider: HistoryProvider
         if (object_key := process.executor.history_provider_callable) not in settings.SPADE_HISTORY_PROVIDERS:
             history_provider = import_object(object_key)
             settings.SPADE_HISTORY_PROVIDERS[object_key] = history_provider
         else:
-            history_provider: HistoryProvider = settings.SPADE_HISTORY_PROVIDERS[object_key]
+            history_provider = settings.SPADE_HISTORY_PROVIDERS[object_key]
 
         provider_results = history_provider.get_runs(process, request, *args, **kwargs)
         return (

@@ -7,7 +7,7 @@ from . import models
 class FileFormatAdminForm(forms.ModelForm):
     class Meta:
         model = models.FileFormat
-        fields = "__all__"
+        fields = ("format",)
 
 
 class FileFormatAdmin(admin.ModelAdmin):
@@ -21,7 +21,7 @@ admin.site.register(models.FileFormat, FileFormatAdmin)
 class FileProcessorAdminForm(forms.ModelForm):
     class Meta:
         model = models.FileProcessor
-        fields = "__all__"
+        fields = ("name", "description", "callable")
 
 
 class FileProcessorAdmin(admin.ModelAdmin):
@@ -35,7 +35,16 @@ admin.site.register(models.FileProcessor, FileProcessorAdmin)
 class FileAdminForm(forms.ModelForm):
     class Meta:
         model = models.File
-        fields = "__all__"
+        fields = (
+            "code",
+            "description",
+            "format",
+            "processor",
+            "tags",
+            "user_params",
+            "system_params",
+            "linked_process",
+        )
 
 
 class FileAdmin(admin.ModelAdmin):
@@ -52,7 +61,14 @@ admin.site.register(models.File, FileAdmin)
 class FileUploadAdminForm(forms.ModelForm):
     class Meta:
         model = models.FileUpload
-        fields = "__all__"
+        fields = (
+            "name",
+            "output",
+            "size",
+            "rows",
+            "user_params",
+            "system_params",
+        )
 
 
 class FileUploadAdmin(admin.ModelAdmin):
@@ -60,7 +76,7 @@ class FileUploadAdmin(admin.ModelAdmin):
     list_display = ["file", "result", "user", "created_at"]
     search_fields = ["file", "user"]
     list_filter = ["result", "created_at"]
-    readonly_fields = ["created_at"]
+    readonly_fields = ["file", "created_at"]
 
 
 admin.site.register(models.FileUpload, FileUploadAdmin)

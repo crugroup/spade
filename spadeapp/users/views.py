@@ -1,3 +1,5 @@
+from allauth.account import app_settings as allauth_account_settings
+from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from rest_framework import generics, permissions, viewsets
@@ -28,7 +30,14 @@ class RegisterUserView(generics.CreateAPIView):
         user = serializer.save()
         token = serializer.get_token(user)
         serializer.validated_data["token"] = token
-        return super().perform_create(serializer)
+        result = super().perform_create(serializer)
+        complete_signup(
+            self.request._request,
+            user,
+            allauth_account_settings.EMAIL_VERIFICATION,
+            None,
+        )
+        return result
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):

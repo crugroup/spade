@@ -19,6 +19,22 @@ plugins = ["django_coverage_plugin"]
 line-length = 119
 target-version = ['py311']
 
+[tool.ruff]
+line-length = 119
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "DJ",
+    "F",
+    "I",
+    "UP"
+]
+ignore = [
+    "DJ001"
+]
+
 
 # ==== isort ====
 [tool.isort]

@@ -9,7 +9,7 @@ from . import models
 class ProcessAdminForm(forms.ModelForm):
     class Meta:
         model = models.Process
-        fields = "__all__"
+        fields = ("code", "description", "tags", "system_params", "user_params", "executor")
 
 
 class ProcessAdmin(admin.ModelAdmin):
@@ -26,7 +26,16 @@ admin.site.register(models.Process, ProcessAdmin)
 class ProcessRunAdminForm(forms.ModelForm):
     class Meta:
         model = models.ProcessRun
-        fields = "__all__"
+        fields = (
+            "process",
+            "result",
+            "status",
+            "user",
+            "system_params",
+            "user_params",
+            "output",
+            "error_message",
+        )
 
 
 class ProcessRunAdmin(admin.ModelAdmin):
@@ -43,7 +52,7 @@ admin.site.register(models.ProcessRun, ProcessRunAdmin)
 class ExecutorAdminForm(forms.ModelForm):
     class Meta:
         model = models.Executor
-        fields = "__all__"
+        fields = ("name", "description", "callable", "history_provider_callable")
 
 
 class ExecutorAdmin(admin.ModelAdmin):

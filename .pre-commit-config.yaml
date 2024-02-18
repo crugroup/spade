@@ -21,28 +21,15 @@ repos:
     rev: '1.15.0'
     hooks:
       - id: django-upgrade
-        args: ['--target-version', '4.2']
+        args: ['--target-version', '5.0']
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
-    hooks:
-      - id: pyupgrade
-        args: [--py311-plus]
 
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.2
     hooks:
-      - id: black
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
-    hooks:
-      - id: flake8
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
 
   - repo: https://github.com/Riverside-Healthcare/djLint
     rev: v1.34.1
