@@ -47,6 +47,7 @@ class FileProcessor(models.Model):
     class Meta:
         ordering = ("-pk",)
 
+
 class File(models.Model):
     code = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
