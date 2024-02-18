@@ -20,7 +20,7 @@ services:
     command: /start
     ports:
       - '8000:5000'
-  
+
   spadeui:
     image: ghcr.io/crugroup/spadeui:develop
     container_name: spadeapp_production_spadeui
