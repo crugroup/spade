@@ -1,4 +1,4 @@
-from dj_rest_auth.registration.views import ResendEmailVerificationView, VerifyEmailView
+from dj_rest_auth.registration.views import ResendEmailVerificationView
 from dj_rest_auth.views import LogoutView, PasswordChangeView, PasswordResetView
 from django.urls import include, path
 from rest_framework import routers
@@ -13,11 +13,10 @@ router.register(r"groups", GroupViewSet)
 app_name = "users"
 urlpatterns = [
     path("registration", RegisterUserView.as_view(), name="register"),
-    path("registration/verify-email", VerifyEmailView.as_view(), name="verify-email"),
     path(
         "registration/resend-verification-email",
         ResendEmailVerificationView.as_view(),
-        name="resend-verification-email",
+        name="resend-confirmation-email",
     ),
     path("token", jwt_views.TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh", jwt_views.TokenRefreshView.as_view(), name="token_refresh"),

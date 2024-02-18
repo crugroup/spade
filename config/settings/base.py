@@ -217,7 +217,7 @@ EMAIL_TIMEOUT = 5
 # Django Admin URL.
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = []
+ADMINS: list[tuple[str, str]] = []
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 # https://cookiecutter-django.readthedocs.io/en/latest/settings.html#other-environment-settings
@@ -320,8 +320,8 @@ SPECTACULAR_SETTINGS = {
 # Your stuff...
 # ------------------------------------------------------------------------------
 
-SPADE_FILE_PROCESSORS = {}
+SPADE_FILE_PROCESSORS: dict[str, object] = {}
 
-SPADE_PROCESS_EXECUTORS = {}
+SPADE_PROCESS_EXECUTORS: dict[str, object] = {}
 
-SPADE_HISTORY_PROVIDERS = {}
+SPADE_HISTORY_PROVIDERS: dict[str, object] = {}

@@ -24,7 +24,10 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         request=serializers.ProcessRunParamsSerializer,
-        responses={200: serializers.ProcessRunSerializer, 500: serializers.ProcessRunSerializer},
+        responses={
+            200: serializers.ProcessRunSerializer,
+            500: serializers.ProcessRunSerializer,
+        },
     )
     @decorators.action(detail=True, methods=["post"])
     def run(self, request, pk):
@@ -63,7 +66,8 @@ class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
             return Response([])
 
         serializer = serializers.ProcessRunSerializer(
-            service.ProcessService.get_runs(process, request, *args, **kwargs), many=True
+            service.ProcessService.get_runs(process, request, *args, **kwargs),
+            many=True,
         )
         return Response(serializer.data)
 

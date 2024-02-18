@@ -12,11 +12,12 @@ class FileService:
     def process_file(file: File, data, filename, user, user_params: dict) -> FileUpload:
         """Process a file using the file processor."""
 
+        processor: FileProcessor
         if (object_key := file.processor.callable) not in settings.SPADE_FILE_PROCESSORS:
             processor = import_object(object_key)
             settings.SPADE_FILE_PROCESSORS[object_key] = processor
         else:
-            processor: FileProcessor = settings.SPADE_FILE_PROCESSORS[object_key]
+            processor = settings.SPADE_FILE_PROCESSORS[object_key]
 
         upload: FileUpload = FileUpload.objects.create(
             file=file,
