@@ -1,6 +1,7 @@
 import typing
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from spadesdk.executor import Executor
 from spadesdk.executor import Process as SDKProcess
 from spadesdk.executor import RunResult as SDKRunResult
@@ -8,6 +9,8 @@ from spadesdk.history_provider import HistoryProvider
 
 from ..utils.imports import import_object
 from .models import Process, ProcessRun
+
+User = get_user_model()
 
 
 class ProcessService:
@@ -36,8 +39,9 @@ class ProcessService:
                     system_params=process.system_params,
                 ),
                 user_params,
+                user.id,
             )
-            run.result = result.result
+            run.result = result.result.value if result.result else None
             run.output = result.output
             run.error_message = result.error_message
             run.status = ProcessRun.Statuses.FINISHED
@@ -68,10 +72,12 @@ class ProcessService:
         return (
             ProcessRun(
                 process=process,
-                status=result.status,
-                result=result.result,
+                status=result.status.value,
+                result=result.result.value if result.result else None,
                 output=result.output,
                 error_message=result.error_message,
+                created_at=result.created_at,
+                user=User.objects.get(id=result.user_id) if result.user_id else None,
             )
             for result in provider_results
         )
