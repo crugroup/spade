@@ -52,3 +52,5 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = (  # noqa: F405
     "rest_framework.authentication.SessionAuthentication",
     "rest_framework.authentication.TokenAuthentication",
 )
+
+CORS_ALLOWED_ORIGINS += ["http://localhost:5173"]  # noqa: F405

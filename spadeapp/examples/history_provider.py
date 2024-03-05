@@ -7,14 +7,14 @@ class ExampleHistoryProvider(HistoryProvider):
         return (
             RunResult(
                 process=process,
-                result="success",
-                status="finished",
+                result=RunResult.Result.SUCCESS,
+                status=RunResult.Status.FINISHED,
                 output={"foo": "bar"},
             ),
             RunResult(
                 process=process,
-                result="failed",
-                status="finished",
+                result=RunResult.Result.FAILED,
+                status=RunResult.Status.FINISHED,
                 output={"foo": "bar"},
                 error_message="Something went wrong",
             ),
