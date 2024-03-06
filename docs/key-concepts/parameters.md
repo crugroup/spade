@@ -11,7 +11,7 @@ Both types of parameters are simple JSON objects, and can accept any type of dat
 is serialisable to JSON. 
 
 ## System Parameters
-System parameters are parameters sent to the [Process](../process.md) or [File](../file.md) for every
+System parameters are parameters sent to the [Process](process.md) or [File](file.md) for every
 run, and are meant for things that do not change between runs, e.g. a table to write to in a database,
 or a specific URL to send HTTP requests to. These are set as part of a File or Process, and require
 write privileges to edit.
