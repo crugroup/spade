@@ -11,6 +11,3 @@ library into your dependencies. It can be installed using pip:
 pip install spadesdk
 ```
 
-Any classes that will be used as [Executors](executor.md), [File Processors](file-processor.md)
-and [History Providers](history-provider.md) **must** derive from the classes in this SDK.
-
