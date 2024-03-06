@@ -12,9 +12,9 @@ When you configure a File, you can specify:
 * File format (e.g. PDF, XLSX, etc.)
 * Tags
 * File Processor (the Python class that Spade runs to process the file)
-  see [File Processor](/docs/key-concepts/spade-sdk/file-processor.md)
-* System & user parameters (see [Parameters](/docs/key-concepts/parameters.md))
-* Linked process - the process that Spade automatically starts when a file is uploaded
+  see [File Processor](spade-sdk/file-processor.md)
+* System & user parameters (see [Parameters](parameters.md))
+* Linked process - the [Process](process.md) that Spade automatically starts when a file is uploaded
 
 ## Uploading a File
 
