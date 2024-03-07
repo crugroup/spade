@@ -6,6 +6,8 @@ from spadesdk.file_processor import FileUpload as SDKFileUpload
 from ..utils.imports import import_object
 from .models import File, FileUpload
 
+from ..processes.service import ProcessService
+
 
 class FileService:
     @staticmethod
@@ -42,10 +44,18 @@ class FileService:
             upload.rows = result.rows
             upload.output = result.output
             upload.error_message = result.error_message
+            print(file.linked_process)
+            if file.linked_process:
+                try:
+                    ProcessService.run_process(file.linked_process, user, user_params)
+                except Exception as e:
+                    pass
             upload.save()
         except Exception as e:
             upload.result = FileUpload.Results.FAILED
             upload.error_message = str(e)
             upload.save()
+        
+
 
         return upload
