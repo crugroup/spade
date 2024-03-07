@@ -43,10 +43,9 @@ class FileService:
             upload.rows = result.rows
             upload.output = result.output
             upload.error_message = result.error_message
-            print(file.linked_process)
             if file.linked_process:
                 try:
-                    ProcessService.run_process(file.linked_process, user, user_params)
+                    upload.linked_process_run = ProcessService.run_process(file.linked_process, user, user_params)
                 except Exception:
                     pass
             upload.save()
