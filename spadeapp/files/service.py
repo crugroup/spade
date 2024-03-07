@@ -43,7 +43,8 @@ class FileService:
             upload.rows = result.rows
             upload.output = result.output
             upload.error_message = result.error_message
-            if file.linked_process:
+            upload.save()
+            if file.linked_process and upload.result == FileUpload.Results.SUCCESS:
                 try:
                     upload.linked_process_run = ProcessService.run_process(file.linked_process, user, user_params)
                 except Exception:
