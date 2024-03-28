@@ -1,3 +1,5 @@
+import os
+
 from .base import *  # noqa
 from .base import env
 
@@ -80,11 +82,21 @@ ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")
 # ------------------------------------------------------------------------------
 # https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
 INSTALLED_APPS += ["anymail"]  # noqa: F405
+
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
 # https://anymail.readthedocs.io/en/stable/esps
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-ANYMAIL = {}
+def load_dict_settings(prefix):
+    res = {}
+    for env_var in os.environ:
+        if env_var.startswith(prefix):
+            # Remove the prefix and add to the ANYMAIL dictionary
+            res[env_var[len(prefix) :]] = os.environ[env_var]
+    return res
+
+
+ANYMAIL = load_dict_settings("ANYMAIL_")
 
 
 # LOGGING
