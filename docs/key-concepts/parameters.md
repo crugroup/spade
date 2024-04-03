@@ -22,5 +22,5 @@ not encrypted and can be accessed by anyone with view privileges on the File or 
 User parameters are designed for parameters that can change for every run, and are set by the user
 each time they are triggered. These are defined as a [JsonSchema](https://json-schema.org) in the
 admin panel, and are displayed as a form to the user for each run. The final results of that form
-are sent as a Python dictionary to the underlying [Executor](executor.md) or
-[File Processor](file-processor.md).
+are sent as a Python dictionary to the underlying [Executor](spade-sdk/executor.md) or
+[File Processor](spade-sdk/file-processor.md).
