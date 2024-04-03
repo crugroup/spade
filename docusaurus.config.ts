@@ -128,7 +128,7 @@ const config: Config = {
             },
             {
               label: 'Careers',
-              href: 'https://discordapp.com/invite/docusaurus',
+              href: 'https://crugroup.com/careers/',
             },
             {
               label: 'GitHub',
