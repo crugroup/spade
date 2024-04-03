@@ -10,32 +10,29 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/support-64.svg').default,
+    title: 'User-friendly',
+    Svg: require('@site/static/img/icon_1.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Spade was designed with simplicity in mind.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/desktop-chart-64.svg').default,
+    title: 'Efficient',
+    Svg: require('@site/static/img/icon_2.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Simple minimal SDK to get you started in no time.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/desktop-chart-64.svg').default,
+    title: 'Powered by Python',
+    Svg: require('@site/static/img/icon_3.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Write your processes leveraging the full power of Python.
       </>
     ),
   },
