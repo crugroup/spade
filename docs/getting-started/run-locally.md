@@ -25,7 +25,7 @@ This will bring up the Spade backend server on your local machine. You can acces
 
 To run the frontend locally:
 
-1. Clone the Spade UI repo https://github.com/crugroup/spade)
+1. Clone the Spade UI repo https://github.com/crugroup/spadeui)
 2. Install the required dependencies by running `yarn install`
 3. Start the server by running `yarn start`
 

@@ -2,6 +2,7 @@
   "label": "Key concepts",
   "position": 5,
   "link": {
-    "type": "generated-index"
+    "type": "generated-index",
+    "description": "This section describes the key concepts you need to understand to develop with Spade. Just pick a topic from the list below."
   }
 }
