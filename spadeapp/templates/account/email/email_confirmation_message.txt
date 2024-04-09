@@ -1,0 +1,6 @@
+Hello from Spade!
+
+Thank you for signing up at {{ site_name }}.
+
+Please confirm your email address by clicking the link below:
+{{ activate_url }}

@@ -42,6 +42,8 @@ LANGUAGE_CODE = "en-us"
 # ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
+SITE_DOMAIN = env("DJANGO_SITE_DOMAIN", default="spade.local")
+SITE_NAME = env("DJANGO_SITE_NAME", default="Spade")
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz

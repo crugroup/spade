@@ -1,0 +1,5 @@
+{% load i18n %}{% autoescape off %}{% blocktrans%}Hello from Spade!{% endblocktrans %}
+
+{% block content %}{% endblock content %}
+
+{% endautoescape %}
