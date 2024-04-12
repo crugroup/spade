@@ -263,11 +263,13 @@ ACCOUNT_USERNAME_REQUIRED = False
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = env("DJANGO_ACCOUNT_EMAIL_VERIFICATION", default="mandatory")
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "spadeapp.users.adapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "spadeapp.users.adapters.SocialAccountAdapter"
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = env("DJANGO_ACCOUNT_DEFAULT_HTTP_PROTOCOL", default="https")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=30),
@@ -298,14 +300,16 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 100,
 }
 
+REST_AUTH = {
+    "PASSWORD_RESET_USE_SITES_DOMAIN": True,
+}
+
+FRONTEND_EXTERNAL_URL = env("FRONTEND_EXTERNAL_URL", default="http://localhost:5173")
+
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
 CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    env("FRONTEND_EXTERNAL_URL", default="https://localhost"),
-]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000", FRONTEND_EXTERNAL_URL]
 
 CORS_ALLOW_HEADERS = (
     *default_headers,
