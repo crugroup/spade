@@ -1,0 +1,42 @@
+services:
+  django:
+    image: ghcr.io/crugroup/spade:latest
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=spadeapp
+      - POSTGRES_USER=spade
+      - POSTGRES_PASSWORD=spade
+      - USE_DOCKER=yes
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_SECRET_KEY=secret
+      - FIELD_ENCRYPTION_KEY=secret
+      - DJANGO_SECURE_SSL_REDIRECT=False
+      - FRONTEND_EXTERNAL_URL=http://localhost:8080
+      - DJANGO_ALLOWED_HOSTS=*
+      - PYTHONPATH=/user_code
+    command: /start
+    volumes:
+      - ./user_code:/user_code
+    ports:
+      - '8081:5000'
+
+  spadeui:
+    image: ghcr.io/crugroup/spadeui:latest
+    depends_on:
+      - django
+    environment:
+      - VITE_BACKEND_BASE_URL=http://localhost:8081/api/v1
+    ports:
+      - '8080:80'
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=spadeapp
+      - POSTGRES_USER=spade
+      - POSTGRES_PASSWORD=spade
