@@ -63,7 +63,7 @@ INSTALLED_APPS = ["django.contrib.staticfiles"] + INSTALLED_APPS  # noqa: F405
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    default="Spade <noreply@crugroup.com>",
+    default="Spade <noreply@spade.crugroup.com>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
@@ -147,7 +147,7 @@ LOGGING = {
 # -------------------------------------------------------------------------------
 # Tools that generate code samples can use SERVERS to point to the correct domain
 SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
-    {"url": "https://crugroup.com", "description": "Production server"},
+    {"url": "https://crugroup.com", "description": "Spade"},
 ]
 # Your stuff...
 # ------------------------------------------------------------------------------
