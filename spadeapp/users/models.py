@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db.models import EmailField
 from django.utils.translation import gettext_lazy as _
@@ -21,6 +22,13 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    def save(self, *args, **kwargs):
+        # If no users exist, the first user is automatically a superuser
+        if settings.ACCOUNT_FIRST_USER_ADMIN and not User.objects.exists():
+            self.is_superuser = True
+            self.is_staff = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email

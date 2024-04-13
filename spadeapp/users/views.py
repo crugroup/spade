@@ -1,6 +1,7 @@
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group, Permission
 from rest_framework import generics, permissions, viewsets
 from rest_framework.authtoken.models import Token
@@ -27,6 +28,7 @@ class RegisterUserView(generics.CreateAPIView):
     serializer_class = RegisterUserSerializer
 
     def perform_create(self, serializer):
+        serializer.validated_data["password"] = make_password(serializer.validated_data["password"])
         user = serializer.save()
         token = serializer.get_token(user)
         serializer.validated_data["token"] = token
