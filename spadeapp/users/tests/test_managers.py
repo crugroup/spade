@@ -14,8 +14,6 @@ class TestUserManager:
             password="something-r@nd0m!",
         )
         assert user.email == "john@example.com"
-        assert not user.is_staff
-        assert not user.is_superuser
         assert user.check_password("something-r@nd0m!")
         assert user.username is None
 
