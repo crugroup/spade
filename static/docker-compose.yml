@@ -1,5 +1,5 @@
 services:
-  django:
+  spade:
     image: ghcr.io/crugroup/spade:latest
     depends_on:
       - postgres
@@ -16,6 +16,8 @@ services:
       - DJANGO_SECURE_SSL_REDIRECT=False
       - FRONTEND_EXTERNAL_URL=http://localhost:8080
       - DJANGO_ALLOWED_HOSTS=*
+      - DJANGO_EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+      - DJANGO_ACCOUNT_EMAIL_VERIFICATION=optional
       - PYTHONPATH=/user_code
     command: /start
     volumes:
@@ -26,17 +28,23 @@ services:
   spadeui:
     image: ghcr.io/crugroup/spadeui:latest
     depends_on:
-      - django
+      - spade
     environment:
       - VITE_BACKEND_BASE_URL=http://localhost:8081/api/v1
+      - VITE_EMAIL_CONFIRMATION_REQUIRED=false
     ports:
       - '8080:80'
 
   postgres:
     image: postgres:16
+    volumes:
+      - spade_postgres_data:/var/lib/postgresql/data    
     environment:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DB=spadeapp
       - POSTGRES_USER=spade
       - POSTGRES_PASSWORD=spade
+
+volumes:
+  spade_postgres_data: {}
