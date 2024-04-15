@@ -23,9 +23,6 @@ urlpatterns = [
         PasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
     ),
-    path(
-        "api/v1/registration/confirm-email-request", VerifyEmailView.as_view(), name="account_email_verification_sent"
-    ),
     re_path(
         r"api/v1/registration/confirm-email/(?P<key>[-:\w]+)$", VerifyEmailView.as_view(), name="account_confirm_email"
     ),
