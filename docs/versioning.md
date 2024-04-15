@@ -25,6 +25,13 @@ The Pypi package versions are consistent with Github tags
 
 ### Docker images
 
+We provide the following tags for Spade Docker images:
+* `latest` - the latest stable release on `main` branch
+* `major.minor.revision` - based on a Github release tag
+* `develop` - the latest development version on `develop` branch
+
 ## Spade UI
 
 ### Docker images
+
+The rules for Spade UI Docker images are the same as for Spade.
