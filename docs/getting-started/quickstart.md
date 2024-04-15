@@ -16,3 +16,8 @@ or depending on your Docker compose version it might be:
 ```bash
 docker compose up
 ```
+
+Spade will be available at [http://localhost:8080](http://localhost:8080). To begin, just register a user and start creating processes.
+The first registered user will be a Django superuser.
+
+To add your own code, simply place in in `./user_code` and it will be available to use in the Spade UI.
