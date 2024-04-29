@@ -6,6 +6,13 @@
 
 **Documentation** [crugroup.github.io/spade](https://crugroup.github.io/spade/)
 
+## Quick Start
+
+```bash
+curl -O https://crugroup.github.io/spade/docker-compose.yml
+docker compose up
+```
+
 ## Basic Commands for Development
 
 ### Setting Up Your Users
