@@ -1,0 +1,4 @@
+# General
+# ------------------------------------------------------------------------------
+VITE_BACKEND_BASE_URL=http://localhost:8081/api/v1
+VITE_EMAIL_CONFIRMATION_REQUIRED=false

@@ -9,7 +9,6 @@ services:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
     image: spadeapp_local_django
-    container_name: spadeapp_local_django
     depends_on:
       - postgres
     volumes:
@@ -18,12 +17,20 @@ services:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
     ports:
-      - '8000:8000'
+      - '8081:8000'
     command: /start
+
+  spadeui:
+    image: ghcr.io/crugroup/spadeui:latest
+    env_file:
+      - ./.envs/.local/.spadeui
+    depends_on:
+      - django
+    ports:
+      - '8080:80'
 
   postgres:
     image: postgres:16
-    container_name: spadeapp_local_postgres
     ports:
       - '5432:5432'
     volumes:
@@ -33,7 +40,6 @@ services:
 
   docs:
     image: spadeapp_local_docs
-    container_name: spadeapp_local_docs
     build:
       context: .
       dockerfile: ./compose/local/docs/Dockerfile
