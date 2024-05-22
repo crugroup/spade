@@ -1,3 +1,4 @@
+import json
 import typing
 
 from django.conf import settings
@@ -15,7 +16,7 @@ User = get_user_model()
 
 class ProcessService:
     @staticmethod
-    def run_process(process: Process, user, user_params: dict) -> ProcessRun:
+    def run_process(process: Process, user, user_params: str) -> ProcessRun:
         """Run a process using the executor."""
 
         executor: Executor
@@ -31,6 +32,14 @@ class ProcessService:
             status=ProcessRun.Statuses.RUNNING,
             user_params=user_params,
         )
+
+        try:
+            user_params = json.loads(user_params) if user_params else {}
+        except json.JSONDecodeError:
+            run.result = ProcessRun.Results.FAILED
+            run.error_message = "Failed to parse user params as JSON"
+            run.save()
+            return run
 
         try:
             result: SDKRunResult = executor.run(
