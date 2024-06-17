@@ -14,7 +14,7 @@ djangorestframework-stubs[compatible-mypy]==3.15.0  # https://github.com/typeddj
 
 # Code quality
 # ------------------------------------------------------------------------------
-flake8==7.0.0  # https://github.com/PyCQA/flake8
+flake8==7.1.0  # https://github.com/PyCQA/flake8
 flake8-isort==6.1.1  # https://github.com/gforcada/flake8-isort
 coverage==7.5.3  # https://github.com/nedbat/coveragepy
 black==24.4.2  # https://github.com/psf/black
