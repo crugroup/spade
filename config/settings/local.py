@@ -69,8 +69,7 @@ def groups_match_tags(user, obj):
         return True
     group_names = user.groups.values("name")
     tag_names = obj.tags.values("name")
-    ret = group_names.intersection(tag_names)
-    return ret.exists()
+    return group_names.intersection(tag_names).exists()
 
 
 SPADE_PERMISSIONS.set_rule("files.view_file", groups_match_tags)
