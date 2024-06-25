@@ -24,4 +24,7 @@ drf-spectacular>=0.27.2  # https://github.com/tfranzel/drf-spectacular
 django-taggit==6.0.0
 django-filter==24.2  # https://github.com/carltongibson/django-filter
 
+# django-rules
+rules==3.4.0  # https://github.com/dfunckt/django-rules
+
 spadesdk==0.2.0

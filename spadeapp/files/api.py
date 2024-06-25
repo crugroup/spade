@@ -1,7 +1,9 @@
+from django.conf import settings
 from django_filters import rest_framework as filters_drf
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import decorators, parsers, permissions, status, viewsets
 from rest_framework.response import Response
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from ..utils import filters as utils_filters
 from . import models, serializers, service
@@ -15,27 +17,82 @@ class FileFilterSet(filters_drf.FilterSet):
         fields = ("tags", "code", "format", "processor")
 
 
-class FileFormatViewSet(viewsets.ModelViewSet):
+class FileFormatViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.FileFormat.objects.all()
     serializer_class = serializers.FileFormatSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
 
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }
 
-class FileProcessorViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        viewable_objects = filter(
+            lambda obj: settings.SPADE_PERMISSIONS.test_rule(
+                models.FileFormat.get_perm("view"),
+                request.user,
+                obj,
+            ),
+            queryset,
+        )
+        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)
+
+
+class FileProcessorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.FileProcessor.objects.all()
     serializer_class = serializers.FileProcessorSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
     search_fields = ("name", "description")
 
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }
 
-class FileViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        viewable_objects = filter(
+            lambda obj: settings.SPADE_PERMISSIONS.test_rule(
+                models.FileProcessor.get_perm("view"),
+                request.user,
+                obj,
+            ),
+            queryset,
+        )
+        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)
+
+
+class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.File.objects.all()
     serializer_class = serializers.FileSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = FileFilterSet
     search_fields = ("code", "description")
+
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+        "upload": "upload",
+    }
+
+    def list(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        viewable_objects = filter(
+            lambda obj: settings.SPADE_PERMISSIONS.test_rule(
+                models.File.get_perm("view"),
+                request.user,
+                obj,
+            ),
+            queryset,
+        )
+        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)
 
     @extend_schema(
         request={"*/*": serializers.FileContentSerializer},
@@ -65,7 +122,7 @@ class FileViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
-class FileUploadViewSet(viewsets.ReadOnlyModelViewSet):
+class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = models.FileUpload.objects.all()
     serializer_class = serializers.FileUploadSerializer
     permission_classes = [permissions.DjangoModelPermissions]
@@ -79,3 +136,21 @@ class FileUploadViewSet(viewsets.ReadOnlyModelViewSet):
         "user",
         "created_at",
     )
+
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }
+
+    def list(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        viewable_objects = filter(
+            lambda obj: settings.SPADE_PERMISSIONS.test_rule(
+                models.FileUpload.get_perm("view"),
+                request.user,
+                obj,
+            ),
+            queryset,
+        )
+        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)
