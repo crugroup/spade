@@ -1,5 +1,6 @@
 from .base import *  # noqa
-from .base import env
+from .base import env, SPADE_PERMISSIONS
+import rules
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -54,3 +55,25 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = (  # noqa: F405
 )
 
 CORS_ALLOWED_ORIGINS += ["http://localhost:5173"]  # noqa: F405
+
+
+# RULES
+# ------------------------------------------------------------------------------
+
+
+# Predicate that checks if the group names of a user match
+# any of the tags of the given object
+@rules.predicate
+def groups_match_tags(user, obj):
+    if user.is_superuser:
+        return True
+    group_names = user.groups.values("name")
+    tag_names = obj.tags.values("name")
+    ret = group_names.intersection(tag_names)
+    return ret.exists()
+
+
+SPADE_PERMISSIONS.set_rule("files.view_file", groups_match_tags)
+SPADE_PERMISSIONS.set_rule("files.upload_file", groups_match_tags)
+SPADE_PERMISSIONS.set_rule("processes.view_process", groups_match_tags)
+SPADE_PERMISSIONS.set_rule("processes.run_process", groups_match_tags)
