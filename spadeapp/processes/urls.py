@@ -12,4 +12,4 @@ router.register(r"executors", api.ExecutorViewSet)
 
 urlpatterns = [path("v1/", include(router.urls))]
 
-app_name = "files"
+app_name = "processes"
