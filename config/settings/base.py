@@ -90,7 +90,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "dj_rest_auth",
     "dj_rest_auth.registration",
-    "rules.apps.AutodiscoverRulesConfig",
+    "rules",
 ]
 
 LOCAL_APPS = [
