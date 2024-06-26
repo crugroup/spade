@@ -82,7 +82,7 @@ class File(RulesModel):
             "list": defer_rule("files.list_file"),
             "change": defer_rule("files.change_file"),
             "delete": defer_rule("files.delete_file"),
-            "upload": defer_rule("files.upload_file"),
+            "upload": defer_rule("files.add_fileupload"),
         }
 
     def __str__(self):
