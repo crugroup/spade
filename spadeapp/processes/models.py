@@ -85,6 +85,7 @@ class Process(RulesModel):
             "list": defer_rule("processes.list_process"),
             "change": defer_rule("processes.change_process"),
             "delete": defer_rule("processes.delete_process"),
+            "run": defer_rule("processes.run_process"),
         }
 
     def __str__(self):
