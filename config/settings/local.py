@@ -65,8 +65,6 @@ CORS_ALLOWED_ORIGINS += ["http://localhost:5173"]  # noqa: F405
 # any of the tags of the given object
 @rules.predicate
 def groups_match_tags(user, obj):
-    if user.is_superuser:
-        return True
     group_names = user.groups.values("name")
     tag_names = obj.tags.values("name")
     return group_names.intersection(tag_names).exists()
