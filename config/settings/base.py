@@ -6,6 +6,7 @@ import datetime
 from pathlib import Path
 
 import environ
+import rules
 from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -89,6 +90,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "rules",
 ]
 
 LOCAL_APPS = [
@@ -106,6 +108,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "rules.permissions.ObjectPermissionBackend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
@@ -335,3 +338,19 @@ SPADE_FILE_PROCESSORS: dict[str, object] = {}
 SPADE_PROCESS_EXECUTORS: dict[str, object] = {}
 
 SPADE_HISTORY_PROVIDERS: dict[str, object] = {}
+
+SPADE_PERMISSIONS = rules.rulesets.RuleSet()
+
+for name in ["fileformat", "fileprocessor", "file", "fileupload"]:
+    SPADE_PERMISSIONS.add_rule(f"files.add_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.view_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.list_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.change_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.delete_{name}", rules.always_allow)
+
+for name in ["executor", "process", "processrun"]:
+    SPADE_PERMISSIONS.add_rule(f"processes.add_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.view_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.list_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.change_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.delete_{name}", rules.always_allow)
