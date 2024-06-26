@@ -1,4 +1,3 @@
-from django.conf import settings
 from django_filters import rest_framework as filters_drf
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import decorators, parsers, permissions, status, viewsets
@@ -30,17 +29,10 @@ class FileFormatViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        if request.user.is_superuser:
-            viewable_objects = queryset
-        else:
-            viewable_objects = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.FileFormat.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                queryset,
-            )
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.FileFormat.get_perm("view"), obj),
+            queryset,
+        )
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -59,17 +51,10 @@ class FileProcessorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        if request.user.is_superuser:
-            viewable_objects = queryset
-        else:
-            viewable_objects = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.FileProcessor.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                queryset,
-            )
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.FileProcessor.get_perm("view"), obj),
+            queryset,
+        )
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -89,17 +74,10 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        if request.user.is_superuser:
-            viewable_objects = queryset
-        else:
-            viewable_objects = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.File.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                queryset,
-            )
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.File.get_perm("view"), obj),
+            queryset,
+        )
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -153,16 +131,9 @@ class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        if request.user.is_superuser:
-            viewable_objects = queryset
-        else:
-            viewable_objects = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.FileUpload.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                queryset,
-            )
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.FileUpload.get_perm("view"), obj),
+            queryset,
+        )
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)

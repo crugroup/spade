@@ -1,4 +1,3 @@
-from django.conf import settings
 from django_filters import rest_framework as filters_drf
 from drf_spectacular.utils import extend_schema
 from rest_framework import decorators, permissions, status, viewsets
@@ -32,17 +31,10 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        if request.user.is_superuser:
-            viewable_objects = queryset
-        else:
-            viewable_objects = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.Process.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                queryset,
-            )
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.Process.get_perm("view"), obj),
+            queryset,
+        )
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -95,15 +87,10 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
             return Response([])
 
         runs = service.ProcessService.get_runs(process, request, *args, **kwargs)
-        if not request.user.is_superuser:
-            runs = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.ProcessRun.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                runs,
-            )
+        runs = filter(
+            lambda obj: request.user.has_perm(models.ProcessRun.get_perm("view"), obj),
+            runs,
+        )
 
         serializer = serializers.ProcessRunSerializer(runs, many=True)
 
@@ -124,16 +111,9 @@ class ExecutorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        if request.user.is_superuser:
-            viewable_objects = queryset
-        else:
-            viewable_objects = filter(
-                lambda obj: settings.SPADE_PERMISSIONS.test_rule(
-                    models.Executor.get_perm("view"),
-                    request.user,
-                    obj,
-                ),
-                queryset,
-            )
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.Executor.get_perm("view"), obj),
+            queryset,
+        )
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
