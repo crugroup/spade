@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from ..utils import filters as utils_filters
+from ..utils.permissions import PostRequiresViewPermission
 from . import models, serializers, service
 
 
@@ -45,7 +46,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
             500: serializers.ProcessRunSerializer,
         },
     )
-    @decorators.action(detail=True, methods=["post"])
+    @decorators.action(detail=True, methods=["post"], permission_classes=[PostRequiresViewPermission])
     def run(self, request, pk):
         process = self.get_object()
         serializer = serializers.ProcessRunSerializer(

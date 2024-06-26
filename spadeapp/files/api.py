@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from ..utils import filters as utils_filters
+from ..utils.permissions import PostRequiresViewPermission
 from . import models, serializers, service
 
 
@@ -92,6 +93,7 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         detail=True,
         methods=["post"],
         parser_classes=[parsers.MultiPartParser, parsers.FileUploadParser],
+        permission_classes=[PostRequiresViewPermission],
     )
     def upload(self, request, pk, format=None):
         file = self.get_object()
