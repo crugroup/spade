@@ -341,44 +341,16 @@ SPADE_HISTORY_PROVIDERS: dict[str, object] = {}
 
 SPADE_PERMISSIONS = rules.rulesets.RuleSet()
 
-SPADE_PERMISSIONS.add_rule("files.add_fileformat", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.view_fileformat", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.list_fileformat", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.change_fileformat", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.delete_fileformat", rules.always_allow)
+for name in ["fileformat", "fileprocessor", "file", "fileupload"]:
+    SPADE_PERMISSIONS.add_rule(f"files.add_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.view_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.list_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.change_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"files.delete_{name}", rules.always_allow)
 
-SPADE_PERMISSIONS.add_rule("files.add_fileprocessor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.view_fileprocessor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.list_fileprocessor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.change_fileprocessor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.delete_fileprocessor", rules.always_allow)
-
-SPADE_PERMISSIONS.add_rule("files.add_file", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.view_file", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.list_file", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.change_file", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.delete_file", rules.always_allow)
-
-SPADE_PERMISSIONS.add_rule("files.add_fileupload", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.view_fileupload", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.list_fileupload", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.change_fileupload", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("files.delete_fileupload", rules.always_allow)
-
-SPADE_PERMISSIONS.add_rule("processes.add_executor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.view_executor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.list_executor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.change_executor", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.delete_executor", rules.always_allow)
-
-SPADE_PERMISSIONS.add_rule("processes.add_process", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.view_process", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.list_process", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.change_process", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.delete_process", rules.always_allow)
-
-SPADE_PERMISSIONS.add_rule("processes.add_processrun", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.view_processrun", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.list_processrun", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.change_processrun", rules.always_allow)
-SPADE_PERMISSIONS.add_rule("processes.delete_processrun", rules.always_allow)
+for name in ["executor", "process", "processrun"]:
+    SPADE_PERMISSIONS.add_rule(f"processes.add_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.view_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.list_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.change_{name}", rules.always_allow)
+    SPADE_PERMISSIONS.add_rule(f"processes.delete_{name}", rules.always_allow)
