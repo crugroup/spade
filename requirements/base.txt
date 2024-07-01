@@ -3,7 +3,7 @@ argon2-cffi==23.1.0  # https://github.com/hynek/argon2_cffi
 #redis==5.0.1  # https://github.com/redis/redis-py
 #hiredis==2.2.3  # https://github.com/redis/hiredis-py
 whitenoise==6.7.0  # https://github.com/evansd/whitenoise
-psycopg[binary]==3.1.19  # https://github.com/psycopg/psycopg
+psycopg[binary]==3.2.0  # https://github.com/psycopg/psycopg
 
 # Django
 # ------------------------------------------------------------------------------
