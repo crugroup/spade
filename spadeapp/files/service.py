@@ -52,7 +52,7 @@ class FileService:
                 data=data,
                 user_params=user_params,
             )
-            upload.result = result.result
+            upload.result = result.result.value if result.result else None
             upload.rows = result.rows
             upload.output = result.output
             upload.error_message = result.error_message
