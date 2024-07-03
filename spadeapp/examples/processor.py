@@ -6,4 +6,4 @@ class ExampleFileProcessor(FileProcessor):
     def process(cls, file: File, filename: str, data, user_params: dict | None) -> FileUpload:
         """Process a file using the file processor."""
 
-        return FileUpload(file=file, result="success", rows=1, output={"example": "output"})
+        return FileUpload(file=file, result=FileUpload.Result.SUCCESS, rows=1, output={"example": "output"})
