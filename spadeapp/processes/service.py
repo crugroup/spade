@@ -1,4 +1,5 @@
 import json
+import logging
 import typing
 
 from django.conf import settings
@@ -11,6 +12,7 @@ from spadesdk.history_provider import HistoryProvider
 from ..utils.imports import import_object
 from .models import Process, ProcessRun
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -19,6 +21,7 @@ class ProcessService:
     def run_process(process: Process, user, user_params: str) -> ProcessRun:
         """Run a process using the executor."""
 
+        logger.info(f"Running process {process} with executor {process.executor.callable}")
         executor: Executor
         if (object_key := process.executor.callable) not in settings.SPADE_PROCESS_EXECUTORS:
             executor = import_object(object_key)
@@ -56,6 +59,7 @@ class ProcessService:
             run.status = ProcessRun.Statuses.FINISHED
             run.save()
         except Exception as e:
+            logger.exception(f"Error running process {process}")
             run.status = ProcessRun.Statuses.ERROR
             run.result = ProcessRun.Results.FAILED
             run.error_message = str(e)
