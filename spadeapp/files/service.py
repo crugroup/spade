@@ -18,6 +18,7 @@ class FileService:
     def process_file(file: File, data, filename, user, user_params: str) -> FileUpload:
         """Process a file using the file processor."""
 
+        logger.info(f"Uploading to file {file} with processor {file.processor.callable}")
         processor: FileProcessor
         if (object_key := file.processor.callable) not in settings.SPADE_FILE_PROCESSORS:
             processor = import_object(object_key)
@@ -57,18 +58,16 @@ class FileService:
             upload.output = result.output
             upload.error_message = result.error_message
             upload.save()
-            logger.info(f"Result returned with result {repr(result.result)}")
-            logger.info(f"Set upload result to {repr(upload.result)}")
-            logger.info(f"Success result is {repr(FileUpload.Results.SUCCESS)}")
             if file.linked_process and upload.result == FileUpload.Results.SUCCESS:
                 logger.info("Running linked process")
                 try:
                     upload.linked_process_run = ProcessService.run_process(file.linked_process, user, user_params)
-                except Exception as e:
-                    logger.error("Failed to run linked process:", e)
+                except Exception:
+                    logger.exception(f"Error running linked process {file.linked_process}")
                     pass
             upload.save()
         except Exception as e:
+            logger.exception(f"Error processing file {file}")
             upload.result = FileUpload.Results.FAILED
             upload.error_message = str(e)
             upload.save()
