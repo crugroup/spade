@@ -58,6 +58,9 @@ class FileService:
             upload.output = result.output
             upload.error_message = result.error_message
             upload.save()
+            logger.info(f"Result returned with result {repr(result.result)}")
+            logger.info(f"Set upload result to {repr(upload.result)}")
+            logger.info(f"Success result is {repr(FileUpload.Results.SUCCESS)}")
             if file.linked_process and upload.result == FileUpload.Results.SUCCESS:
                 logger.info("Running linked process")
                 try:
