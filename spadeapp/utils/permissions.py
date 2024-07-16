@@ -30,7 +30,7 @@ class SpadePermissionManager:
         self.rules[name] = rule
 
     def test_rule(self, name, *args):
-        return self.rules.get(name, self.default_rule)(*args)
+        return self.rules.get(name, self.default_rule).test(*args)
 
 
 class PermissionManagerCache:

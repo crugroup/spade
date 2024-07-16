@@ -338,6 +338,4 @@ SPADE_PROCESS_EXECUTORS: dict[str, object] = {}
 
 SPADE_HISTORY_PROVIDERS: dict[str, object] = {}
 
-SPADE_PERMISSION_MANAGER = env(
-    "SPADE_PERMISSION_MANAGER", default="spadeapp.utils.permissions.DefaultPermissionManager"
-)
+SPADE_PERMISSION_MANAGER = env("SPADE_PERMISSION_MANAGER", default="spadeapp.utils.permissions.SpadePermissionManager")
