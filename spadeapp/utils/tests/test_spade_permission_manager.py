@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 
@@ -37,7 +37,7 @@ def test_test_rule_existing(permission_manager):
     mock_rule = Mock(return_value=True)
     permission_manager.add_rule("test_rule", mock_rule)
     result = permission_manager.test_rule("test_rule")
-    mock_rule.assert_called_once()
+    mock_rule.assert_has_calls([call.test()])
     assert result, "test_rule should return True for 'test_rule'."
 
 
@@ -48,7 +48,7 @@ def test_test_rule_non_existing(permission_manager, mock_default_rule):
         "non_existing_rule" not in permission_manager.rules
     ), "Rule name 'non_existing_rule' should not be in the rules dictionary."
     result = permission_manager.test_rule("non_existing_rule")
-    mock_default_rule.assert_called_once()
+    mock_default_rule.assert_has_calls([call.test()])
     assert not result, "test_rule should return False for a non-existing rule, using the default rule."
 
 
@@ -57,7 +57,7 @@ def test_test_rule_existing_deny(permission_manager):
     mock_rule_deny = Mock(return_value=False)
     permission_manager.add_rule("deny_rule", mock_rule_deny)
     result = permission_manager.test_rule("deny_rule")
-    mock_rule_deny.assert_called_once()
+    mock_rule_deny.assert_has_calls([call.test()])
     assert not result, "test_rule should return False for 'deny_rule'."
 
 
@@ -67,5 +67,5 @@ def test_test_rule_with_argument(permission_manager):
     permission_manager.add_rule("rule_with_arg", mock_rule_with_arg)
     mock_arg = Mock()
     result = permission_manager.test_rule("rule_with_arg", mock_arg)
-    mock_rule_with_arg.assert_called_once_with(mock_arg)
+    mock_rule_with_arg.assert_has_calls([call.test(mock_arg)])
     assert result, "test_rule should return True for 'rule_with_arg' when passed mock_arg."
