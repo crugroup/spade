@@ -1,9 +1,7 @@
 import os
 
-import rules
-
 from .base import *  # noqa
-from .base import SPADE_PERMISSIONS, env
+from .base import env
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -151,26 +149,6 @@ LOGGING = {
 SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
     {"url": "https://crugroup.com", "description": "Spade"},
 ]
-
-
-# RULES
-# ------------------------------------------------------------------------------
-# https://github.com/dfunckt/django-rules
-@rules.predicate
-def groups_match_tags(user, obj):
-    """
-    Predicate that checks if the user's group's names match
-    any of the tag names of the object.
-    """
-    group_names = user.groups.values("name")
-    tag_names = obj.tags.values("name")
-    return group_names.intersection(tag_names).exists()
-
-
-SPADE_PERMISSIONS.set_rule("files.view_file", groups_match_tags)
-SPADE_PERMISSIONS.set_rule("files.add_fileupload", groups_match_tags)
-SPADE_PERMISSIONS.set_rule("processes.view_process", groups_match_tags)
-SPADE_PERMISSIONS.set_rule("processes.add_processrun", groups_match_tags)
 
 
 # Your stuff...
