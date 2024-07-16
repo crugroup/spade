@@ -14,7 +14,9 @@ def permission_manager():
 @pytest.fixture
 def mock_default_rule():
     """Fixture to create a mock default rule."""
-    return Mock(return_value=False)
+    mock = Mock()
+    mock.test.return_value = False
+    return mock
 
 
 def test_initialization(permission_manager):
@@ -24,7 +26,8 @@ def test_initialization(permission_manager):
 
 def test_add_rule(permission_manager):
     """Test adding a rule to the SpadePermissionManager."""
-    mock_rule = Mock(return_value=True)
+    mock_rule = Mock()
+    mock_rule.test.return_value = True
     permission_manager.add_rule("test_rule", mock_rule)
     assert "test_rule" in permission_manager.rules, "Rule name 'test_rule' should be in the rules dictionary."
     assert (
@@ -34,7 +37,8 @@ def test_add_rule(permission_manager):
 
 def test_test_rule_existing(permission_manager):
     """Test testing an existing rule."""
-    mock_rule = Mock(return_value=True)
+    mock_rule = Mock()
+    mock_rule.test.return_value = True
     permission_manager.add_rule("test_rule", mock_rule)
     result = permission_manager.test_rule("test_rule")
     mock_rule.assert_has_calls([call.test()])
@@ -54,7 +58,8 @@ def test_test_rule_non_existing(permission_manager, mock_default_rule):
 
 def test_test_rule_existing_deny(permission_manager):
     """Test testing an existing rule that denies access."""
-    mock_rule_deny = Mock(return_value=False)
+    mock_rule_deny = Mock()
+    mock_rule_deny.test.return_value = False
     permission_manager.add_rule("deny_rule", mock_rule_deny)
     result = permission_manager.test_rule("deny_rule")
     mock_rule_deny.assert_has_calls([call.test()])
@@ -63,7 +68,8 @@ def test_test_rule_existing_deny(permission_manager):
 
 def test_test_rule_with_argument(permission_manager):
     """Test testing a rule with an additional argument."""
-    mock_rule_with_arg = Mock(return_value=True)
+    mock_rule_with_arg = Mock()
+    mock_rule_with_arg.test.return_value = True
     permission_manager.add_rule("rule_with_arg", mock_rule_with_arg)
     mock_arg = Mock()
     result = permission_manager.test_rule("rule_with_arg", mock_arg)
