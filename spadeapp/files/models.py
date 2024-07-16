@@ -9,7 +9,7 @@ from taggit.managers import TaggableManager
 from spadeapp.processes import models as process_models
 
 from ..utils.imports import import_object
-from ..utils.rules import defer_rule
+from ..utils.permissions import defer_rule
 
 
 class FileFormat(RulesModel):

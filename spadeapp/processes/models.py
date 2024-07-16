@@ -8,7 +8,7 @@ from spadesdk.history_provider import HistoryProvider as SDKHistoryProvider
 from taggit.managers import TaggableManager
 
 from ..utils.imports import import_object
-from ..utils.rules import defer_rule
+from ..utils.permissions import defer_rule
 
 
 class Executor(RulesModel):

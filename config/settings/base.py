@@ -6,7 +6,6 @@ import datetime
 from pathlib import Path
 
 import environ
-import rules
 from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -339,18 +338,6 @@ SPADE_PROCESS_EXECUTORS: dict[str, object] = {}
 
 SPADE_HISTORY_PROVIDERS: dict[str, object] = {}
 
-SPADE_PERMISSIONS = rules.rulesets.RuleSet()
-
-for name in ["fileformat", "fileprocessor", "file", "fileupload"]:
-    SPADE_PERMISSIONS.add_rule(f"files.add_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"files.view_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"files.list_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"files.change_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"files.delete_{name}", rules.always_allow)
-
-for name in ["executor", "process", "processrun"]:
-    SPADE_PERMISSIONS.add_rule(f"processes.add_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"processes.view_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"processes.list_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"processes.change_{name}", rules.always_allow)
-    SPADE_PERMISSIONS.add_rule(f"processes.delete_{name}", rules.always_allow)
+SPADE_PERMISSION_MANAGER = env(
+    "SPADE_PERMISSION_MANAGER", default="spadeapp.utils.permissions.DefaultPermissionManager"
+)
