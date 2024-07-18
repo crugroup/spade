@@ -52,7 +52,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6.4.0
+        uses: docker/build-push-action@v6.4.1
         with:
           context: .
           file: ./compose/production/django/Dockerfile
