@@ -10,7 +10,7 @@ psycopg[binary]==3.2.1  # https://github.com/psycopg/psycopg
 django==5.0.7  # https://www.djangoproject.com/
 django-environ==0.11.2  # https://github.com/joke2k/django-environ
 django-model-utils==4.5.1  # https://github.com/jazzband/django-model-utils
-django-allauth>=0.57.0  # https://github.com/pennersr/django-allauth
+django-allauth>=0.61.1  # https://github.com/pennersr/django-allauth
 
 # Django REST Framework
 djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
@@ -22,6 +22,6 @@ djangorestframework-simplejwt==5.3.1
 drf-spectacular>=0.27.2  # https://github.com/tfranzel/drf-spectacular
 
 django-taggit==6.0.0
-django-filter==24.2  # https://github.com/carltongibson/django-filter
+django-filter==24.3  # https://github.com/carltongibson/django-filter
 
 spadesdk==0.2.0
