@@ -1,3 +1,4 @@
+from django.db.models.functions import Lower
 from rules.predicates import predicate
 
 from spadeapp.utils.permissions import SpadePermissionManager
@@ -9,8 +10,8 @@ def tags_intersect_groups(user, obj):
     Predicate that checks if the user's group's names match
     any of the tag names of the object.
     """
-    group_names = user.groups.values("name")
-    tag_names = obj.tags.values("name")
+    group_names = user.groups.annotate(lower_name=Lower("name")).values("lower_name")
+    tag_names = obj.tags.annotate(lower_name=Lower("name")).values("lower_name")
     return group_names.intersection(tag_names).exists()
 
 
