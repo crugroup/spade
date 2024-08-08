@@ -5,4 +5,4 @@ gunicorn==22.0.0  # https://github.com/benoitc/gunicorn
 
 # Django
 # ------------------------------------------------------------------------------
-django-anymail==11.0.1  # https://github.com/anymail/django-anymail
+django-anymail==11.1  # https://github.com/anymail/django-anymail
