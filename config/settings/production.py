@@ -149,5 +149,7 @@ LOGGING = {
 SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
     {"url": "https://crugroup.com", "description": "Spade"},
 ]
+
+
 # Your stuff...
 # ------------------------------------------------------------------------------
