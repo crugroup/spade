@@ -2,14 +2,16 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from rules.contrib.models import RulesModel
 from spadesdk.executor import Executor as SDKExecutor
 from spadesdk.history_provider import HistoryProvider as SDKHistoryProvider
 from taggit.managers import TaggableManager
 
 from ..utils.imports import import_object
+from ..utils.permissions import defer_rule
 
 
-class Executor(models.Model):
+class Executor(RulesModel):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     callable = models.CharField(max_length=512)
@@ -17,6 +19,13 @@ class Executor(models.Model):
 
     class Meta:
         ordering = ("-pk",)
+        rules_permissions = {
+            "add": defer_rule("processes.add_executor"),
+            "view": defer_rule("processes.view_executor"),
+            "list": defer_rule("processes.list_executor"),
+            "change": defer_rule("processes.change_executor"),
+            "delete": defer_rule("processes.delete_executor"),
+        }
 
     def __str__(self):
         return self.name
@@ -59,7 +68,7 @@ class Executor(models.Model):
                 )
 
 
-class Process(models.Model):
+class Process(RulesModel):
     code = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     tags = TaggableManager(blank=True)
@@ -70,12 +79,20 @@ class Process(models.Model):
 
     class Meta:
         ordering = ("-pk",)
+        rules_permissions = {
+            "add": defer_rule("processes.add_process"),
+            "view": defer_rule("processes.view_process"),
+            "list": defer_rule("processes.list_process"),
+            "change": defer_rule("processes.change_process"),
+            "delete": defer_rule("processes.delete_process"),
+            "run": defer_rule("processes.add_processrun"),
+        }
 
     def __str__(self):
         return self.code
 
 
-class ProcessRun(models.Model):
+class ProcessRun(RulesModel):
     class Results(models.TextChoices):
         SUCCESS = "success", _("Success")
         WARNING = "warning", _("Warning")
@@ -99,6 +116,13 @@ class ProcessRun(models.Model):
 
     class Meta:
         ordering = ("-pk",)
+        rules_permissions = {
+            "add": defer_rule("processes.add_processrun"),
+            "view": defer_rule("processes.view_processrun"),
+            "list": defer_rule("processes.list_processrun"),
+            "change": defer_rule("processes.change_processrun"),
+            "delete": defer_rule("processes.delete_processrun"),
+        }
 
     def __str__(self):
         return f"{self.process.code} - {self.created_at}"
