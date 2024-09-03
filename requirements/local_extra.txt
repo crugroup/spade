@@ -1,0 +1,3 @@
+# Installed by local deployment on each startup
+# Useful if developing a processor/executor that requires extra dependencies
+# -----------------------------------------------------------
