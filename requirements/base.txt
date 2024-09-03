@@ -25,6 +25,6 @@ django-taggit==6.0.0
 django-filter==24.3  # https://github.com/carltongibson/django-filter
 
 # django-rules
-rules==3.4.0  # https://github.com/dfunckt/django-rules
+rules==3.5  # https://github.com/dfunckt/django-rules
 
 spadesdk==0.2.0
