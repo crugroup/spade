@@ -66,7 +66,7 @@ class FileProcessor(RulesModel):
 class File(RulesModel):
     code = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
-    tags = TaggableManager(blank=True)
+    tags = TaggableManager(blank=True, ordering=[])
     format = models.ForeignKey(FileFormat, on_delete=models.CASCADE)
     processor = models.ForeignKey(FileProcessor, on_delete=models.CASCADE)
     system_params = models.JSONField(null=True, blank=True)

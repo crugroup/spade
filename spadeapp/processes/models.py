@@ -71,7 +71,7 @@ class Executor(RulesModel):
 class Process(RulesModel):
     code = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
-    tags = TaggableManager(blank=True)
+    tags = TaggableManager(blank=True, ordering=[])
     executor = models.ForeignKey(Executor, on_delete=models.CASCADE)
     system_params = models.JSONField(null=True, blank=True)
     user_params = models.JSONField(null=True, blank=True)
