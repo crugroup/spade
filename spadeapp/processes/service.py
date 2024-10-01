@@ -37,7 +37,7 @@ class ProcessService:
         )
 
         try:
-            user_params = json.loads(user_params) if user_params else {}
+            parsed_user_params = json.loads(user_params) if user_params else {}
         except json.JSONDecodeError:
             run.result = ProcessRun.Results.FAILED
             run.error_message = "Failed to parse user params as JSON"
@@ -50,7 +50,7 @@ class ProcessService:
                     code=process.code,
                     system_params=process.system_params,
                 ),
-                user_params,
+                parsed_user_params,
                 user.id,
             )
             run.result = result.result.value if result.result else None
