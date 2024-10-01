@@ -35,7 +35,7 @@ class FileService:
         )
 
         try:
-            user_params = json.loads(user_params) if user_params else {}
+            parsed_user_params = json.loads(user_params) if user_params else {}
         except json.JSONDecodeError:
             upload.result = FileUpload.Results.FAILED
             upload.error_message = "Failed to parse user params as JSON"
@@ -51,7 +51,7 @@ class FileService:
                 ),
                 filename=filename,
                 data=data,
-                user_params=user_params,
+                user_params=parsed_user_params,
             )
             upload.result = result.result.value if result.result else None
             upload.rows = result.rows
