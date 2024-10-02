@@ -89,6 +89,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "rules",
 ]
 
 LOCAL_APPS = [
@@ -106,6 +107,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "rules.permissions.ObjectPermissionBackend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
@@ -335,3 +337,5 @@ SPADE_FILE_PROCESSORS: dict[str, object] = {}
 SPADE_PROCESS_EXECUTORS: dict[str, object] = {}
 
 SPADE_HISTORY_PROVIDERS: dict[str, object] = {}
+
+SPADE_PERMISSION_MANAGER = env("SPADE_PERMISSION_MANAGER", default="spadeapp.utils.permissions.SpadePermissionManager")

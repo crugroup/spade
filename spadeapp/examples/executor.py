@@ -1,13 +1,14 @@
 import logging
 
 from spadesdk.executor import Executor, Process, RunResult
+from spadesdk.user import User
 
 logger = logging.getLogger(__name__)
 
 
 class ExampleExecutor(Executor):
     @classmethod
-    def run(cls, process: "Process", user_params: dict, user_id: int) -> RunResult:
+    def run(cls, process: "Process", user_params: dict, user: User, *args, **kwargs) -> RunResult:
         """Execute a process using the executor."""
 
         logger.info("Running example executor for process %s", process.code)

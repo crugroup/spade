@@ -13,7 +13,30 @@ curl -O https://crugroup.github.io/spade/docker-compose.yml
 docker compose up
 ```
 
-## Basic Commands for Development
+## Development
+
+### Local development - only Postgres in Docker
+
+Install local dependencies
+
+```
+pip install -r requirements/local.txt
+```
+
+Start a local postgres server in Docker
+
+```
+export DJANGO_READ_DOT_ENV_FILE=True
+export DJANGO_ENV_FILE=.envs/.local/.local
+docker-compose -f local.yml up -d postgres
+
+```
+
+### Running a local server
+```
+./manage.py runserver
+```
+
 
 ### Setting Up Your Users
 
@@ -47,27 +70,6 @@ To run the tests, check your test coverage, and generate an HTML coverage report
 
     $ pytest
 
-
-## Development
-
-### Local development - only Postgres in Docker
-
-Install local dependencies
-
-```
-pip install -r requirements/local.txt
-```
-
-Run your a local django server
-
-```
-export DJANGO_READ_DOT_ENV_FILE=True
-export DJANGO_ENV_FILE=.envs/.local/.local
-docker-compose -f local.yml up -d postgres
-./manage.py runserver
-
-```
-
-### Examples
+## Examples
 
 `spadeapp.examples` contains some examples for basic objects such as executor, processor, and history provider.
