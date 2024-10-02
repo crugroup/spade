@@ -2,8 +2,10 @@ from django_filters import rest_framework as filters_drf
 from drf_spectacular.utils import extend_schema
 from rest_framework import decorators, permissions, status, viewsets
 from rest_framework.response import Response
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from ..utils import filters as utils_filters
+from ..utils.permissions import PostRequiresViewPermission
 from . import models, serializers, service
 
 
@@ -15,12 +17,27 @@ class ProcessFilterSet(filters_drf.FilterSet):
         fields = ("tags", "code", "executor")
 
 
-class ProcessViewSet(viewsets.ModelViewSet):
+class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.Process.objects.all()
     serializer_class = serializers.ProcessSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = ProcessFilterSet
     search_fields = ("code", "description")
+
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+        "run": "run",
+    }
+
+    def list(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.Process.get_perm("view"), obj),
+            queryset,
+        )
+        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)
 
     @extend_schema(
         request=serializers.ProcessRunParamsSerializer,
@@ -29,7 +46,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
             500: serializers.ProcessRunSerializer,
         },
     )
-    @decorators.action(detail=True, methods=["post"])
+    @decorators.action(detail=True, methods=["post"], permission_classes=[PostRequiresViewPermission])
     def run(self, request, pk):
         process = self.get_object()
         serializer = serializers.ProcessRunSerializer(
@@ -42,7 +59,7 @@ class ProcessViewSet(viewsets.ModelViewSet):
         )
 
 
-class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
+class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = models.ProcessRun.objects.all()
     serializer_class = serializers.ProcessRunSerializer
     permission_classes = [permissions.DjangoModelPermissions]
@@ -55,6 +72,11 @@ class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
         "created_at",
     )
 
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }
+
     def list(self, request, *args, **kwargs):
         process_id = self.request.query_params.get("process", None)
         if not process_id:
@@ -65,16 +87,34 @@ class ProcessRunViewSet(viewsets.ReadOnlyModelViewSet):
         except models.Process.DoesNotExist:
             return Response([])
 
-        serializer = serializers.ProcessRunSerializer(
-            service.ProcessService.get_runs(process, request, *args, **kwargs),
-            many=True,
+        runs = service.ProcessService.get_runs(process, request, *args, **kwargs)
+        runs = filter(
+            lambda obj: request.user.has_perm(models.ProcessRun.get_perm("view"), obj),
+            runs,
         )
+
+        serializer = serializers.ProcessRunSerializer(runs, many=True)
+
         return Response(serializer.data)
 
 
-class ExecutorViewSet(viewsets.ModelViewSet):
+class ExecutorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.Executor.objects.all()
     serializer_class = serializers.ExecutorSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = "__all__"
     search_fields = ("name", "description")
+
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }
+
+    def list(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        viewable_objects = filter(
+            lambda obj: request.user.has_perm(models.Executor.get_perm("view"), obj),
+            queryset,
+        )
+        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)

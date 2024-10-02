@@ -18,21 +18,21 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: '1.19.0'
+    rev: '1.21.0'
     hooks:
       - id: django-upgrade
         args: ['--target-version', '5.0']
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.0
+    rev: v0.6.8
     hooks:
       - id: ruff
         args: [ --fix ]
       - id: ruff-format
 
   - repo: https://github.com/Riverside-Healthcare/djLint
-    rev: v1.34.1
+    rev: v1.35.2
     hooks:
       - id: djlint-reformat-django
       - id: djlint-django
