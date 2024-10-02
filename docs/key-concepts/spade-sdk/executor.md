@@ -11,7 +11,7 @@ The main method that defines an Executor is `run`:
 ```python
 class Executor:
     @classmethod
-    def run(cls, process: Process, user_params: dict, user_id: int) -> RunResult:
+    def run(cls, process: Process, user_params: dict, user: User, *args, **kwargs) -> RunResult:
         pass
 ```
 

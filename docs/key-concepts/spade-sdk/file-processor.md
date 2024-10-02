@@ -11,7 +11,7 @@ The main method that defines a File Processor is `process`:
 ```python
 class FileProcessor:
     @classmethod
-    def process(cls, file: File, filename: str, data, user_params: dict | None, user_id: int) -> FileUpload:
+    def process(cls, file: File, filename: str, data, user_params: dict | None, user: User, *args, **kwargs) -> FileUpload:
         pass
 ```
 
