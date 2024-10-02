@@ -5,6 +5,7 @@ from django.conf import settings
 from spadesdk.file_processor import File as SDKFile
 from spadesdk.file_processor import FileProcessor
 from spadesdk.file_processor import FileUpload as SDKFileUpload
+from spadesdk.user import User as SDKUser
 
 from ..processes.service import ProcessService
 from ..utils.imports import import_object
@@ -52,6 +53,12 @@ class FileService:
                 filename=filename,
                 data=data,
                 user_params=parsed_user_params,
+                user=SDKUser(
+                    id=user.id,
+                    email=user.email,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                ),
             )
             upload.result = result.result.value if result.result else None
             upload.rows = result.rows

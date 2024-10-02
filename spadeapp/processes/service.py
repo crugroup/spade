@@ -8,6 +8,7 @@ from spadesdk.executor import Executor
 from spadesdk.executor import Process as SDKProcess
 from spadesdk.executor import RunResult as SDKRunResult
 from spadesdk.history_provider import HistoryProvider
+from spadesdk.user import User as SDKUser
 
 from ..utils.imports import import_object
 from .models import Process, ProcessRun
@@ -51,7 +52,12 @@ class ProcessService:
                     system_params=process.system_params,
                 ),
                 parsed_user_params,
-                user.id,
+                user=SDKUser(
+                    id=user.id,
+                    email=user.email,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                ),
             )
             run.result = result.result.value if result.result else None
             run.output = result.output
