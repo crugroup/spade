@@ -7,7 +7,7 @@ psycopg[binary]==3.2.3  # https://github.com/psycopg/psycopg
 
 # Django
 # ------------------------------------------------------------------------------
-django==5.1.2  # https://www.djangoproject.com/
+django==5.1.3  # https://www.djangoproject.com/
 django-environ==0.11.2  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
 django-allauth>=0.61.1  # https://github.com/pennersr/django-allauth
