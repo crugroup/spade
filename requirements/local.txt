@@ -18,7 +18,7 @@ flake8==7.1.1  # https://github.com/PyCQA/flake8
 flake8-isort==6.1.1  # https://github.com/gforcada/flake8-isort
 coverage==7.6.8  # https://github.com/nedbat/coveragepy
 black==24.10.0  # https://github.com/psf/black
-djlint==1.36.2  # https://github.com/Riverside-Healthcare/djLint
+djlint==1.36.3  # https://github.com/Riverside-Healthcare/djLint
 pylint-django==2.6.1  # https://github.com/PyCQA/pylint-django
 pre-commit==4.0.1  # https://github.com/pre-commit/pre-commit
 
