@@ -23,8 +23,8 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels  \
 # Python 'run' stage
 FROM python as python-run-stage
 
-ARG BUILD_ENVIRONMENT production
-ARG APP_HOME /app
+ARG BUILD_ENVIRONMENT=production
+ARG APP_HOME=/app
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
