@@ -53,7 +53,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """Get a user"""
 
     serializer_class = UserSerializer
