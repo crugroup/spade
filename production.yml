@@ -1,5 +1,3 @@
-version: '3'
-
 volumes:
   spade_production_django_media: {}
   spade_production_postgres_data: {}

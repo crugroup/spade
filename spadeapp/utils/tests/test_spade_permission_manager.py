@@ -30,9 +30,9 @@ def test_add_rule(permission_manager):
     mock_rule.test.return_value = True
     permission_manager.add_rule("test_rule", mock_rule)
     assert "test_rule" in permission_manager.rules, "Rule name 'test_rule' should be in the rules dictionary."
-    assert (
-        permission_manager.rules["test_rule"] == mock_rule
-    ), "The rule associated with 'test_rule' should be mock_rule."
+    assert permission_manager.rules["test_rule"] == mock_rule, (
+        "The rule associated with 'test_rule' should be mock_rule."
+    )
 
 
 def test_test_rule_existing(permission_manager):
@@ -48,9 +48,9 @@ def test_test_rule_existing(permission_manager):
 def test_test_rule_non_existing(permission_manager, mock_default_rule):
     """Test testing a non-existing rule uses the default rule."""
     permission_manager.default_rule = mock_default_rule
-    assert (
-        "non_existing_rule" not in permission_manager.rules
-    ), "Rule name 'non_existing_rule' should not be in the rules dictionary."
+    assert "non_existing_rule" not in permission_manager.rules, (
+        "Rule name 'non_existing_rule' should not be in the rules dictionary."
+    )
     result = permission_manager.test_rule("non_existing_rule")
     mock_default_rule.assert_has_calls([call.test()])
     assert not result, "test_rule should return False for a non-existing rule, using the default rule."
