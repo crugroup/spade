@@ -30,15 +30,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Use this serializer to get the user profile"""
 
-    permissions = serializers.SerializerMethodField()
-
     class Meta:
         model = User
-        fields = ["id", "is_active", "first_name", "last_name", "email", "groups", "permissions"]
-
-    def get_permissions(self, obj) -> list[str]:
-        user_permissions = Permission.objects.filter(user=obj)
-        return [perm.codename for perm in user_permissions]
+        fields = ["id", "is_active", "first_name", "last_name", "email", "groups", "user_permissions"]
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -50,18 +44,12 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
-    permissions = serializers.SerializerMethodField()
-
     class Meta:
         model = Group
         fields = ["id", "name", "permissions"]
-
-    def get_permissions(self, obj) -> list[str]:
-        group_permissions = Permission.objects.filter(group=obj)
-        return [perm.codename for perm in group_permissions]
 
 
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
-        fields = ["name", "codename"]
+        fields = ["id", "name", "codename"]
