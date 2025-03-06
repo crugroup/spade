@@ -5,6 +5,7 @@ version: 2
 updates:
   # Update GitHub actions in workflows
   - package-ecosystem: 'github-actions'
+    target-branch: 'develop'
     directory: '/'
     # Every weekday
     schedule:
@@ -16,6 +17,7 @@ updates:
   # https://github.com/dependabot/dependabot-core/issues/2178
   - package-ecosystem: 'docker'
     # Look for a `Dockerfile` in the `compose/local/django` directory
+    target-branch: 'develop'
     directory: 'compose/local/django/'
     # Every weekday
     schedule:
@@ -29,6 +31,7 @@ updates:
 
   - package-ecosystem: 'docker'
     # Look for a `Dockerfile` in the `compose/local/docs` directory
+    target-branch: 'develop'
     directory: 'compose/local/docs/'
     # Every weekday
     schedule:
@@ -42,6 +45,7 @@ updates:
 
   - package-ecosystem: 'docker'
     # Look for a `Dockerfile` in the `compose/production/django` directory
+    target-branch: 'develop'
     directory: 'compose/production/django/'
     # Every weekday
     schedule:
@@ -55,6 +59,7 @@ updates:
 
   - package-ecosystem: 'docker'
     # Look for a `Dockerfile` in the `compose/production/postgres` directory
+    target-branch: 'develop'
     directory: 'compose/production/postgres/'
     # Every weekday
     schedule:
@@ -64,6 +69,7 @@ updates:
   - package-ecosystem: 'pip'
     # Look for a `requirements.txt` in the `root` directory
     # also 'setup.cfg', 'runtime.txt' and 'requirements/*.txt'
+    target-branch: 'develop'
     directory: 'requirements/'
     # Every weekday
     schedule:

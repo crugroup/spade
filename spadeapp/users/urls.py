@@ -4,7 +4,15 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt import views as jwt_views
 
-from .views import GroupViewSet, ObtainTokenView, RegisterUserView, UserPermissionsView, UserProfileView, UserViewSet
+from .views import (
+    GroupViewSet,
+    ObtainTokenView,
+    PermissionsView,
+    RegisterUserView,
+    UserPermissionsView,
+    UserProfileView,
+    UserViewSet,
+)
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"users", UserViewSet)
@@ -25,6 +33,7 @@ urlpatterns = [
     path("authtoken", ObtainTokenView.as_view(), name="token_obtain"),
     path("password/reset", PasswordResetView.as_view(), name="password_reset"),
     path("password/change", PasswordChangeView.as_view(), name="password_change"),
-    path("permissions", UserPermissionsView.as_view(), name="permissions"),
+    path("users/me/permissions", UserPermissionsView.as_view(), name="user_permissions"),
+    path("permissions", PermissionsView.as_view(), name="permissions"),
     path("", include(router.urls)),
 ]

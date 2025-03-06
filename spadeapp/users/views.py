@@ -11,9 +11,9 @@ from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 from .serializers import (
     GroupSerializer,
+    PermissionSerializer,
     RegisterUserSerializer,
     TokenSerializer,
-    UserPermissionSerializer,
     UserSerializer,
 )
 
@@ -85,12 +85,12 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 class UserPermissionsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = UserPermissionSerializer
+    serializer_class = PermissionSerializer
     queryset = Permission.objects.none()
 
     def get(self, request, *args, **kwargs):
         if request.user.is_superuser:
-            serializer = UserPermissionSerializer((Permission(name="Is superuser", codename="*"),), many=True)
+            serializer = PermissionSerializer((Permission(name="Is superuser", codename="*"),), many=True)
             return Response(serializer.data)
 
         user = request.user
@@ -101,5 +101,19 @@ class UserPermissionsView(generics.ListAPIView):
         # Combine the querysets
         all_permissions = group_permissions.union(user_permissions)
 
-        serializer = UserPermissionSerializer(all_permissions, many=True)
+        serializer = PermissionSerializer(all_permissions, many=True)
         return Response(serializer.data)
+
+
+class PermissionsView(generics.ListAPIView):
+    """List all available permissions"""
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = PermissionSerializer
+    queryset = Permission.objects.all()
+    search_fields = ("name", "codename")
+    filterset_fields = ("name", "codename")
+    ordering_fields = ("name", "codename")
+    ordering = ("name",)
+    throttle_classes = [UserRateThrottle]
+    pagination_class = None

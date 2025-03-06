@@ -32,14 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
-            "id",
-            "is_active",
-            "first_name",
-            "last_name",
-            "email",
-            "groups",
-        ]
+        fields = ["id", "is_active", "first_name", "last_name", "email", "groups", "user_permissions"]
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -53,10 +46,10 @@ class TokenSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ["id", "name"]
+        fields = ["id", "name", "permissions"]
 
 
-class UserPermissionSerializer(serializers.ModelSerializer):
+class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
-        fields = ["name", "codename"]
+        fields = ["id", "name", "codename"]
