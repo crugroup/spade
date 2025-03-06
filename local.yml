@@ -1,5 +1,3 @@
-version: '3'
-
 volumes:
   spadeapp_local_postgres_data: {}
 
