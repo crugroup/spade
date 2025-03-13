@@ -56,8 +56,8 @@ class FileProcessor(RulesModel):
 
         try:
             processor_callable = import_object(callable_value)
-        except (ImportError, AttributeError):
-            raise exception_class(f"`{callable_value}` could not be imported")
+        except (ImportError, AttributeError) as err:
+            raise exception_class(f"`{callable_value}` could not be imported") from err
 
         if not isinstance(processor_callable, type) or not issubclass(processor_callable, SDKFileProcessor):
             raise exception_class(f"`{callable_value}` is not a subclass of spadesdk.file_processor.FileProcessor")
