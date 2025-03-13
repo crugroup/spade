@@ -14,13 +14,12 @@ omit = ["*/migrations/*", "*/tests/*"]
 plugins = ["django_coverage_plugin"]
 
 
-# ==== black ====
-[tool.black]
-line-length = 119
-target-version = ['py311']
-
 [tool.ruff]
 line-length = 119
+exclude = [
+    "venv/",
+    "**/migrations/*.py",
+]
 
 [tool.ruff.lint]
 select = [
@@ -29,23 +28,20 @@ select = [
     "DJ",
     "F",
     "I",
-    "UP"
+    "UP",
+    "B",
+    "Q",
+    "PL",
 ]
 ignore = [
     "DJ001"
 ]
 
-
-# ==== isort ====
-[tool.isort]
-profile = "black"
-line_length = 119
-known_first_party = [
+[tool.ruff.lint.isort]
+known-first-party = [
     "spadeapp",
     "config",
 ]
-skip = ["venv/"]
-skip_glob = ["**/migrations/*.py"]
 
 
 # ==== mypy ====
@@ -68,37 +64,6 @@ ignore_errors = true
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
-
-
-# ==== PyLint ====
-[tool.pylint.MASTER]
-load-plugins = [
-    "pylint_django",
-]
-django-settings-module = "config.settings.local"
-
-[tool.pylint.FORMAT]
-max-line-length = 119
-
-[tool.pylint."MESSAGES CONTROL"]
-disable = [
-    "missing-docstring",
-    "invalid-name",
-]
-
-[tool.pylint.DESIGN]
-max-parents = 13
-
-[tool.pylint.TYPECHECK]
-generated-members = [
-    "REQUEST",
-    "acl_users",
-    "aq_parent",
-    "[a-zA-Z]+_set{1,2}",
-    "save",
-    "delete",
-]
-
 
 # ==== djLint ====
 [tool.djlint]

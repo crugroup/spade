@@ -44,8 +44,8 @@ class Executor(RulesModel):
 
         try:
             executor_callable = import_object(callable_value)
-        except (ImportError, AttributeError):
-            raise ValidationError(f"`{callable_value}` could not be imported")
+        except (ImportError, AttributeError) as err:
+            raise ValidationError(f"`{callable_value}` could not be imported") from err
 
         if not isinstance(executor_callable, type) or not issubclass(executor_callable, SDKExecutor):
             raise ValidationError(f"`{callable_value}` is not a subclass of spadesdk.executor.Executor")
@@ -56,8 +56,8 @@ class Executor(RulesModel):
         if history_provider_callable_value:
             try:
                 history_provider_callable = import_object(history_provider_callable_value)
-            except (ImportError, AttributeError):
-                raise ValidationError(f"`{history_provider_callable_value}` could not be imported")
+            except (ImportError, AttributeError) as err:
+                raise ValidationError(f"`{history_provider_callable_value}` could not be imported") from err
 
             if not isinstance(history_provider_callable, type) or not issubclass(
                 history_provider_callable, SDKHistoryProvider
