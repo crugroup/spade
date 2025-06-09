@@ -1,6 +1,6 @@
 
 # define an alias for the specific python version used in this file.
-FROM python:3.12.11-slim-bookworm AS python
+FROM python:3.13-slim-bookworm AS python
 
 # Python build stage
 FROM python AS python-build-stage
@@ -21,7 +21,7 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels  \
 
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM python AS python-run-stage
 
 ARG BUILD_ENVIRONMENT=production
 ARG APP_HOME=/app
