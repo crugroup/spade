@@ -28,3 +28,4 @@ django-filter==25.1  # https://github.com/carltongibson/django-filter
 rules==3.5  # https://github.com/dfunckt/django-rules
 
 spadesdk==0.3.0
+cryptography>=45.0.3  # For encrypting secret variables
