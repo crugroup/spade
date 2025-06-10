@@ -1,6 +1,6 @@
 from django.db.models import QuerySet
 
-from .models import FileVariableSets, ProcessVariableSets, Variable, VariableSet
+from .models import Variable, VariableSet
 
 
 class VariableService:
@@ -17,18 +17,18 @@ class VariableService:
         Returns:
             Dictionary of variable names and their decrypted values
         """
+        from spadeapp.processes.models import Process
+
         variables_dict = {}
 
-        # Get all variable sets associated with the process
-        process_variable_sets = (
-            ProcessVariableSets.objects.filter(process_id=process_id)
-            .select_related("variable_set")
-            .prefetch_related("variable_set__variables")
-        )
+        try:
+            process = Process.objects.prefetch_related("variable_sets__variables").get(id=process_id)
 
-        for process_var_set in process_variable_sets:
-            variable_set = process_var_set.variable_set
-            variables_dict.update(variable_set.get_variables_dict())
+            # Get all variable sets associated with the process
+            for variable_set in process.variable_sets.all():
+                variables_dict.update(variable_set.get_variables_dict())
+        except Process.DoesNotExist:
+            pass
 
         return variables_dict
 
@@ -43,18 +43,18 @@ class VariableService:
         Returns:
             Dictionary of variable names and their decrypted values
         """
+        from spadeapp.files.models import File
+
         variables_dict = {}
 
-        # Get all variable sets associated with the file
-        file_variable_sets = (
-            FileVariableSets.objects.filter(file_id=file_id)
-            .select_related("variable_set")
-            .prefetch_related("variable_set__variables")
-        )
+        try:
+            file = File.objects.prefetch_related("variable_sets__variables").get(id=file_id)
 
-        for file_var_set in file_variable_sets:
-            variable_set = file_var_set.variable_set
-            variables_dict.update(variable_set.get_variables_dict())
+            # Get all variable sets associated with the file
+            for variable_set in file.variable_sets.all():
+                variables_dict.update(variable_set.get_variables_dict())
+        except File.DoesNotExist:
+            pass
 
         return variables_dict
 
@@ -86,7 +86,13 @@ class VariableService:
         Returns:
             QuerySet of VariableSet objects
         """
-        return VariableSet.objects.filter(processvariablesets__process_id=process_id).distinct()
+        from spadeapp.processes.models import Process
+
+        try:
+            process = Process.objects.get(id=process_id)
+            return process.variable_sets.all()
+        except Process.DoesNotExist:
+            return VariableSet.objects.none()
 
     @staticmethod
     def get_variable_sets_for_file(file_id: int) -> QuerySet[VariableSet]:
@@ -99,7 +105,13 @@ class VariableService:
         Returns:
             QuerySet of VariableSet objects
         """
-        return VariableSet.objects.filter(filevariablesets__file_id=file_id).distinct()
+        from spadeapp.files.models import File
+
+        try:
+            file = File.objects.get(id=file_id)
+            return file.variable_sets.all()
+        except File.DoesNotExist:
+            return VariableSet.objects.none()
 
     @staticmethod
     def create_variable(name: str, value: str, is_secret: bool = False, description: str = "") -> Variable:
@@ -139,7 +151,7 @@ class VariableService:
         return variable_set
 
     @staticmethod
-    def assign_variable_set_to_process(process_id: int, variable_set_id: int) -> ProcessVariableSets:
+    def assign_variable_set_to_process(process_id: int, variable_set_id: int) -> bool:
         """
         Assign a variable set to a process.
 
@@ -148,12 +160,20 @@ class VariableService:
             variable_set_id: The ID of the variable set
 
         Returns:
-            Created ProcessVariableSets instance
+            True if successful, False otherwise
         """
-        return ProcessVariableSets.objects.create(process_id=process_id, variable_set_id=variable_set_id)
+        from spadeapp.processes.models import Process
+
+        try:
+            process = Process.objects.get(id=process_id)
+            variable_set = VariableSet.objects.get(id=variable_set_id)
+            process.variable_sets.add(variable_set)
+            return True
+        except (Process.DoesNotExist, VariableSet.DoesNotExist):
+            return False
 
     @staticmethod
-    def assign_variable_set_to_file(file_id: int, variable_set_id: int) -> FileVariableSets:
+    def assign_variable_set_to_file(file_id: int, variable_set_id: int) -> bool:
         """
         Assign a variable set to a file.
 
@@ -162,9 +182,17 @@ class VariableService:
             variable_set_id: The ID of the variable set
 
         Returns:
-            Created FileVariableSets instance
+            True if successful, False otherwise
         """
-        return FileVariableSets.objects.create(file_id=file_id, variable_set_id=variable_set_id)
+        from spadeapp.files.models import File
+
+        try:
+            file = File.objects.get(id=file_id)
+            variable_set = VariableSet.objects.get(id=variable_set_id)
+            file.variable_sets.add(variable_set)
+            return True
+        except (File.DoesNotExist, VariableSet.DoesNotExist):
+            return False
 
     @staticmethod
     def merge_variables(*variable_dicts: dict[str, str]) -> dict[str, str]:

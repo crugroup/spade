@@ -36,6 +36,7 @@ class ProcessService:
             user=user,
             status=ProcessRun.Statuses.RUNNING,
             user_params=user_params,
+            system_params=process.system_params,
         )
 
         try:

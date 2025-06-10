@@ -4,7 +4,7 @@ from django.test import TestCase
 from spadeapp.files.models import File, FileFormat, FileProcessor
 from spadeapp.processes.models import Executor, Process
 
-from .models import FileVariableSets, ProcessVariableSets, Variable, VariableSet
+from .models import Variable, VariableSet
 from .service import VariableService
 
 User = get_user_model()
@@ -95,7 +95,7 @@ class VariableServiceTest(TestCase):
     def test_get_variables_for_process(self):
         """Test getting variables for a process."""
         # Assign variable set to process
-        ProcessVariableSets.objects.create(process=self.process, variable_set=self.var_set)
+        self.process.variable_sets.add(self.var_set)
 
         variables = VariableService.get_variables_for_process(self.process.id)
         self.assertEqual(variables["VAR1"], "value1")
@@ -104,7 +104,7 @@ class VariableServiceTest(TestCase):
     def test_get_variables_for_file(self):
         """Test getting variables for a file."""
         # Assign variable set to file
-        FileVariableSets.objects.create(file=self.file, variable_set=self.var_set)
+        self.file.variable_sets.add(self.var_set)
 
         variables = VariableService.get_variables_for_file(self.file.id)
         self.assertEqual(variables["VAR1"], "value1")

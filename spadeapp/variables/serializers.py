@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import FileVariableSets, ProcessVariableSets, Variable, VariableSet
+from .models import Variable, VariableSet
 
 
 class VariableSerializer(serializers.ModelSerializer):
@@ -37,11 +37,7 @@ class VariableSerializer(serializers.ModelSerializer):
 class VariableSetSerializer(serializers.ModelSerializer):
     """Serializer for VariableSet model."""
 
-    variables = VariableSerializer(many=True, read_only=True)
-    variable_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Variable.objects.all(), many=True, write_only=True, source="variables"
-    )
-    variable_count = serializers.SerializerMethodField()
+    variables = serializers.PrimaryKeyRelatedField(queryset=Variable.objects.all(), many=True, required=False)
 
     class Meta:
         model = VariableSet
@@ -50,40 +46,10 @@ class VariableSetSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "variables",
-            "variable_ids",
-            "variable_count",
             "created_at",
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
-
-    def get_variable_count(self, obj):
-        """Get the number of variables in the set."""
-        return obj.variables.count()
-
-
-class ProcessVariableSetsSerializer(serializers.ModelSerializer):
-    """Serializer for ProcessVariableSets model."""
-
-    process_code = serializers.CharField(source="process.code", read_only=True)
-    variable_set_name = serializers.CharField(source="variable_set.name", read_only=True)
-
-    class Meta:
-        model = ProcessVariableSets
-        fields = ["id", "process", "process_code", "variable_set", "variable_set_name", "created_at"]
-        read_only_fields = ["id", "created_at"]
-
-
-class FileVariableSetsSerializer(serializers.ModelSerializer):
-    """Serializer for FileVariableSets model."""
-
-    file_code = serializers.CharField(source="file.code", read_only=True)
-    variable_set_name = serializers.CharField(source="variable_set.name", read_only=True)
-
-    class Meta:
-        model = FileVariableSets
-        fields = ["id", "file", "file_code", "variable_set", "variable_set_name", "created_at"]
-        read_only_fields = ["id", "created_at"]
 
 
 class VariableSetDetailSerializer(VariableSetSerializer):

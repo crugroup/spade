@@ -7,6 +7,7 @@ from spadesdk.file_processor import FileProcessor as SDKFileProcessor
 from taggit.managers import TaggableManager
 
 from spadeapp.processes import models as process_models
+from spadeapp.variables.models import VariableSet
 
 from ..utils.imports import import_object
 from ..utils.permissions import defer_rule
@@ -73,6 +74,7 @@ class File(RulesModel):
     user_params = models.JSONField(null=True, blank=True)
     linked_process = models.ForeignKey(process_models.Process, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    variable_sets = models.ManyToManyField(VariableSet, blank=True, help_text="Variable sets to be used by the file")
 
     class Meta:
         ordering = ("-pk",)

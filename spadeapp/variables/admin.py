@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.forms import ModelForm, PasswordInput
 from django.utils.safestring import mark_safe
 
-from .models import FileVariableSets, ProcessVariableSets, Variable, VariableSet
+from .models import Variable, VariableSet
 
 
 class VariableAdminForm(ModelForm):
@@ -85,29 +85,3 @@ class VariableSetAdmin(admin.ModelAdmin):
     def variable_count(self, obj):
         """Display the number of variables in the set."""
         return obj.variables.count()
-
-
-@admin.register(ProcessVariableSets)
-class ProcessVariableSetsAdmin(admin.ModelAdmin):
-    list_display = ("process", "variable_set", "created_at")
-    list_filter = ("created_at", "process", "variable_set")
-    search_fields = ("process__code", "variable_set__name")
-    readonly_fields = ("created_at",)
-    autocomplete_fields = ("process", "variable_set")
-
-    def get_queryset(self, request):
-        """Optimize queryset with select_related."""
-        return super().get_queryset(request).select_related("process", "variable_set")
-
-
-@admin.register(FileVariableSets)
-class FileVariableSetsAdmin(admin.ModelAdmin):
-    list_display = ("file", "variable_set", "created_at")
-    list_filter = ("created_at", "file", "variable_set")
-    search_fields = ("file__code", "variable_set__name")
-    readonly_fields = ("created_at",)
-    autocomplete_fields = ("file", "variable_set")
-
-    def get_queryset(self, request):
-        """Optimize queryset with select_related."""
-        return super().get_queryset(request).select_related("file", "variable_set")

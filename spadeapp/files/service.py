@@ -34,6 +34,7 @@ class FileService:
             user=user,
             size=len(data),
             user_params=user_params,
+            system_params=file.system_params,
         )
 
         try:
