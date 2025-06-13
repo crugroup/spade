@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from pandera.io import from_frictionless_schema
 from rules.contrib.models import RulesModel
 from spadesdk.file_processor import FileProcessor as SDKFileProcessor
 from taggit.managers import TaggableManager
@@ -15,6 +16,9 @@ from ..utils.permissions import defer_rule
 
 class FileFormat(RulesModel):
     format = models.CharField(max_length=30, unique=True)
+    frictionless_schema = models.JSONField(
+        null=True, blank=True, help_text="Frictionless data schema for validating files of this format"
+    )
 
     class Meta:
         ordering = ("-pk",)
@@ -28,6 +32,39 @@ class FileFormat(RulesModel):
 
     def __str__(self):
         return self.format
+
+    def clean(self):
+        """Validate the frictionless_schema field if provided."""
+        super().clean()
+        if self.frictionless_schema is not None:
+            self.validate_frictionless_schema(self.frictionless_schema)
+
+    @staticmethod
+    def validate_frictionless_schema(schema_data, exception_class=ValidationError):
+        """
+        Validate that the provided schema is a valid Frictionless data schema.
+
+        Args:
+            schema_data: The schema data to validate
+            exception_class: Exception class to raise on validation error
+
+        Raises:
+            ValidationError: If the schema is invalid
+        """
+        if not isinstance(schema_data, dict):
+            raise exception_class("Frictionless schema must be a valid JSON object")
+
+        # Check if pandera is available for validation
+
+        # Basic validation - check for common frictionless schema properties
+        if not any(key in schema_data for key in ["fields", "primaryKey", "foreignKeys"]):
+            raise exception_class("Schema structure appears invalid - missing expected frictionless schema keys")
+
+        try:
+            # Try to create a Pandera DataFrameSchema from the frictionless schema
+            from_frictionless_schema(schema_data)
+        except Exception as e:
+            raise exception_class(f"Invalid frictionless schema: {str(e)}") from e
 
 
 class FileProcessor(RulesModel):

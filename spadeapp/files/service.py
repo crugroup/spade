@@ -57,6 +57,7 @@ class FileService:
                     name=filename,
                     format=file.format.format,
                     system_params=enhanced_system_params,
+                    schema=file.format.frictionless_schema,
                 ),
                 filename=filename,
                 data=data,
