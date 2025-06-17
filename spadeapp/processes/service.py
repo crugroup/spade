@@ -11,6 +11,7 @@ from spadesdk.history_provider import HistoryProvider
 from spadesdk.user import User as SDKUser
 
 from ..utils.imports import import_object
+from ..variables.service import VariableService
 from .models import Process, ProcessRun
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class ProcessService:
             user=user,
             status=ProcessRun.Statuses.RUNNING,
             user_params=user_params,
+            system_params=process.system_params,
         )
 
         try:
@@ -46,10 +48,16 @@ class ProcessService:
             return run
 
         try:
+            # Get variables for the process and merge with system params
+            variables = VariableService.get_variables_for_process(process.id)
+            enhanced_system_params = VariableService.merge_variables(process.system_params or {}, variables)
+
+            logger.info(f"Process {process.code} running with {len(variables)} variables")
+
             result: SDKRunResult = executor.run(
                 SDKProcess(
                     code=process.code,
-                    system_params=process.system_params,
+                    system_params=enhanced_system_params,
                 ),
                 parsed_user_params,
                 user=SDKUser(

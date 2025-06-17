@@ -96,6 +96,7 @@ LOCAL_APPS = [
     "spadeapp.users",
     "spadeapp.files",
     "spadeapp.processes",
+    "spadeapp.variables",
     "spadeapp.utils",
     # Your stuff: custom apps go here
 ]
