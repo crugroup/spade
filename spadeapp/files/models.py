@@ -57,8 +57,10 @@ class FileFormat(RulesModel):
         # Check if pandera is available for validation
 
         # Basic validation - check for common frictionless schema properties
-        if not any(key in schema_data for key in ["fields", "primaryKey", "foreignKeys"]):
-            raise exception_class("Schema structure appears invalid - missing expected frictionless schema keys")
+        if "fields" not in schema_data:
+            raise exception_class(
+                "Schema structure appears invalid - missing expected frictionless schema `fields` key"
+            )
 
         try:
             # Try to create a Pandera DataFrameSchema from the frictionless schema

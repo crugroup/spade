@@ -51,16 +51,6 @@ class FileFormatModelTest(TestCase):
         except ValidationError:
             self.fail("full_clean() raised ValidationError unexpectedly!")
 
-    def test_validate_invalid_schema_empty_dict(self):
-        """Test validation passes when schema is an empty dictionary (valid minimal schema)."""
-        file_format = FileFormat(format="yaml", frictionless_schema={})
-
-        # Empty dict is a valid minimal frictionless schema
-        try:
-            file_format.full_clean()
-        except ValidationError:
-            self.fail("full_clean() raised ValidationError unexpectedly for empty dict!")
-
     def test_validate_invalid_frictionless_schema(self):
         """Test validation fails with an invalid frictionless schema structure."""
         # This is an invalid schema because it has an invalid field type
