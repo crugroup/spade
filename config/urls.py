@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/v1/", include("spadeapp.users.urls", namespace="api")),
     path("api/", include("spadeapp.files.urls", namespace="files")),
     path("api/", include("spadeapp.processes.urls", namespace="processes")),
+    path("api/", include("spadeapp.variables.urls", namespace="variables")),
     path("api/", include("spadeapp.utils.urls", namespace="utils")),
     re_path(
         r"^api/v1/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})$",
