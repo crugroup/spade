@@ -44,7 +44,7 @@ docker-compose -f local.yml up -d postgres
   Once you submit it, you'll see a "Verify Your E-mail Address" page.
   Go to your console to see a simulated email verification message.
   Copy the link into your browser. Now the user's email should be verified and ready to go.
-  Some things things to note about accounts:
+  Some things to note about accounts:
   - The first created user is automatically a Superuser.
 
 - To create a **superuser account**, use this command:
