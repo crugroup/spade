@@ -7,10 +7,10 @@ psycopg[binary]==3.2.9  # https://github.com/psycopg/psycopg
 
 # Django
 # ------------------------------------------------------------------------------
-django==5.2.3  # https://www.djangoproject.com/
+django==5.2.4  # https://www.djangoproject.com/
 django-environ==0.12.0  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth>=65.9.0  # https://github.com/pennersr/django-allauth
+django-allauth>=65.10.0  # https://github.com/pennersr/django-allauth
 
 # Django REST Framework
 djangorestframework==3.16.0  # https://github.com/encode/django-rest-framework
@@ -28,5 +28,5 @@ django-filter==25.1  # https://github.com/carltongibson/django-filter
 rules==3.5  # https://github.com/dfunckt/django-rules
 
 spadesdk==0.4.0
-cryptography>=45.0.4  # For encrypting secret variables
-pandera[io, pandas]>=0.24.0  # For validating data schemas with frictionless support
+cryptography>=45.0.5  # For encrypting secret variables
+pandera[io, pandas]>=0.25.0  # For validating data schemas with frictionless support
