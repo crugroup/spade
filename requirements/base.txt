@@ -16,7 +16,7 @@ django-allauth>=65.10.0  # https://github.com/pennersr/django-allauth
 djangorestframework==3.16.0  # https://github.com/encode/django-rest-framework
 django-cors-headers==4.7.0  # https://github.com/adamchainz/django-cors-headers
 dj-rest-auth[with_social]==7.0.1  # https://github.com/iMerica/dj-rest-auth
-djangorestframework-simplejwt==5.5.0
+djangorestframework-simplejwt==5.5.1
 
 # DRF-spectacular for api documentation
 drf-spectacular>=0.28.0  # https://github.com/tfranzel/drf-spectacular
