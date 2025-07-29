@@ -70,7 +70,7 @@ class ProcessService:
             run.result = result.result.value if result.result else None
             run.output = result.output
             run.error_message = result.error_message
-            run.status = ProcessRun.Statuses.FINISHED
+            run.status = result.status.value
             run.save()
         except Exception as e:
             logger.exception(f"Error running process {process}")
