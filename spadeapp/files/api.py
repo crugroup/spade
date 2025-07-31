@@ -21,7 +21,7 @@ class FileFormatViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.FileFormat.objects.all()
     serializer_class = serializers.FileFormatSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    filterset_fields = "__all__"
+    filterset_fields = ("format",)
 
     permission_type_map = {
         **AutoPermissionViewSetMixin.permission_type_map,
