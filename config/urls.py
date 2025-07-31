@@ -3,6 +3,7 @@ from dj_rest_auth.views import PasswordResetConfirmView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
     path("api/v1/", include("spadeapp.users.urls", namespace="api")),
     path("api/", include("spadeapp.files.urls", namespace="files")),
     path("api/", include("spadeapp.processes.urls", namespace="processes")),
+    path("api/", include("spadeapp.variables.urls", namespace="variables")),
     path("api/", include("spadeapp.utils.urls", namespace="utils")),
     re_path(
         r"^api/v1/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})$",
@@ -25,5 +27,10 @@ urlpatterns = [
     ),
     re_path(
         r"api/v1/registration/confirm-email/(?P<key>[-:\w]+)$", VerifyEmailView.as_view(), name="account_confirm_email"
+    ),
+    re_path(
+        r"account-email-verification-sent/?$",
+        TemplateView.as_view(),
+        name="account_email_verification_sent",
     ),
 ]

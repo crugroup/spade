@@ -7,6 +7,8 @@ from spadesdk.executor import Executor as SDKExecutor
 from spadesdk.history_provider import HistoryProvider as SDKHistoryProvider
 from taggit.managers import TaggableManager
 
+from spadeapp.variables.models import VariableSet
+
 from ..utils.imports import import_object
 from ..utils.permissions import defer_rule
 
@@ -72,6 +74,9 @@ class Process(RulesModel):
     code = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     tags = TaggableManager(blank=True, ordering=[])
+    variable_sets = models.ManyToManyField(
+        VariableSet, blank=True, help_text="Variable sets to be used by the process"
+    )
     executor = models.ForeignKey(Executor, on_delete=models.CASCADE)
     system_params = models.JSONField(null=True, blank=True)
     user_params = models.JSONField(null=True, blank=True)
