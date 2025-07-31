@@ -40,7 +40,7 @@ def secret_variable():
 @pytest.fixture
 def variables_url():
     """Return the URL for the variable list endpoint."""
-    return reverse("api:variable-list")
+    return reverse("api:variables-list")
 
 
 @pytest.mark.django_db
@@ -72,7 +72,7 @@ class TestVariableAPI:
     def test_update_variable_is_secret_field(self, client, regular_variable, secret_variable):
         """Test that is_secret field cannot be modified after creation."""
         # Try to update regular variable to make it secret
-        regular_retrieve_url = reverse("api:variable-retrieve", kwargs={"pk": regular_variable.pk})
+        regular_retrieve_url = reverse("api:variables-retrieve", kwargs={"pk": regular_variable.pk})
         data = {"is_secret": True}
         response = client.patch(regular_retrieve_url, data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -82,7 +82,7 @@ class TestVariableAPI:
         assert regular_variable.is_secret is False
 
         # Try to update secret variable to make it non-secret
-        secret_retrieve_url = reverse("api:variable-retrieve", kwargs={"pk": secret_variable.pk})
+        secret_retrieve_url = reverse("api:variables-retrieve", kwargs={"pk": secret_variable.pk})
         data = {"is_secret": False}
         response = client.patch(secret_retrieve_url, data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -94,7 +94,7 @@ class TestVariableAPI:
     def test_update_other_fields(self, client, regular_variable):
         """Test that other fields can still be updated."""
         # Update name and description of regular variable
-        regular_retrieve_url = reverse("api:variable-retrieve", kwargs={"pk": regular_variable.pk})
+        regular_retrieve_url = reverse("api:variables-retrieve", kwargs={"pk": regular_variable.pk})
         data = {"name": "updated_regular_var", "description": "Updated description"}
         response = client.patch(regular_retrieve_url, data)
         assert response.status_code == status.HTTP_200_OK
