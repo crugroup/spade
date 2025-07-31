@@ -9,6 +9,7 @@ from spadesdk.user import User as SDKUser
 
 from ..processes.service import ProcessService
 from ..utils.imports import import_object
+from ..variables.service import VariableService
 from .models import File, FileUpload
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class FileService:
             user=user,
             size=len(data),
             user_params=user_params,
+            system_params=file.system_params,
         )
 
         try:
@@ -44,11 +46,18 @@ class FileService:
             return upload
 
         try:
+            # Get variables for the file and merge with system params
+            variables = VariableService.get_variables_for_file(file.id)
+            enhanced_system_params = VariableService.merge_variables(file.system_params or {}, variables)
+
+            logger.info(f"File {file.code} processing with {len(variables)} variables")
+
             result: SDKFileUpload = processor.process(
                 SDKFile(
                     name=filename,
                     format=file.format.format,
-                    system_params=file.system_params,
+                    system_params=enhanced_system_params,
+                    schema=file.format.frictionless_schema,
                 ),
                 filename=filename,
                 data=data,

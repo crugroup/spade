@@ -12,6 +12,8 @@ class ExampleExecutor(Executor):
         """Execute a process using the executor."""
 
         logger.info("Running example executor for process %s", process.code)
+        logger.info("System parameters: %s", process.system_params)
+        logger.info("User parameters: %s", user_params)
         return RunResult(
             process=process, status=RunResult.Status.FINISHED, result=RunResult.Result.SUCCESS, output={"foo": "bar"}
         )
