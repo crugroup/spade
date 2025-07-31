@@ -10,6 +10,7 @@ class VariableSerializer(serializers.ModelSerializer):
         model = Variable
         fields = ["id", "name", "description", "value", "is_secret", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
+        extra_kwargs = {"is_secret": {"required": False}}
 
     def to_representation(self, instance):
         """Hide secret variable values in API responses."""
@@ -24,6 +25,10 @@ class VariableSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update an existing variable."""
+        # Remove is_secret from validated_data to ensure it can't be changed
+        if "is_secret" in validated_data:
+            validated_data.pop("is_secret")
+
         # If it's a secret variable and no new value is provided, keep the old one
         if instance.is_secret and "value" in validated_data and not validated_data["value"]:
             validated_data.pop("value")
