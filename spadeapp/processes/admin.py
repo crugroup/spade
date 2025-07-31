@@ -9,7 +9,7 @@ from . import models
 class ProcessAdminForm(forms.ModelForm):
     class Meta:
         model = models.Process
-        fields = ("code", "description", "tags", "system_params", "user_params", "executor")
+        fields = ("code", "description", "tags", "variable_sets", "system_params", "user_params", "executor")
 
 
 class ProcessAdmin(admin.ModelAdmin):

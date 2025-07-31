@@ -5,14 +5,28 @@ from . import models
 
 
 class FileFormatAdminForm(forms.ModelForm):
+    frictionless_schema = forms.JSONField(
+        required=False,
+        help_text="Frictionless data schema for validating files of this format",
+        widget=forms.Textarea(attrs={"rows": 10, "cols": 80, "class": "vLargeTextField"}),
+    )
+
     class Meta:
         model = models.FileFormat
-        fields = ("format",)
+        fields = ("format", "frictionless_schema")
 
 
 class FileFormatAdmin(admin.ModelAdmin):
     form = FileFormatAdminForm
-    list_display = ["format"]
+    list_display = ["format", "has_schema"]
+
+    @admin.display(
+        description="Has Schema",
+        boolean=True,
+    )
+    def has_schema(self, obj):
+        """Display whether the format has a frictionless schema."""
+        return obj.frictionless_schema is not None
 
 
 admin.site.register(models.FileFormat, FileFormatAdmin)
