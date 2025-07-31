@@ -1,8 +1,8 @@
 import pytest
 from rest_framework import status
-from spade.spadeapp.variables.api import VariableViewSet
 
 from spadeapp.users.models import User
+from spadeapp.variables.api import VariableViewSet
 from spadeapp.variables.models import Variable
 
 
