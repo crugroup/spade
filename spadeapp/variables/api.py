@@ -17,7 +17,7 @@ class VariableViewSet(viewsets.ModelViewSet):
     serializer_class = VariableSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["is_secret"]
+    filterset_fields = ["name", "is_secret"]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created_at", "updated_at"]
     ordering = ["name"]
