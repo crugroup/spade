@@ -95,7 +95,19 @@ class ProcessService:
         else:
             history_provider = settings.SPADE_HISTORY_PROVIDERS[object_key]
 
-        provider_results = history_provider.get_runs(process, request, *args, **kwargs)
+        # Get variables for the process and merge with system params
+        variables = VariableService.get_variables_for_process(process.id)
+        enhanced_system_params = VariableService.merge_variables(process.system_params or {}, variables)
+
+        provider_results = history_provider.get_runs(
+            SDKProcess(
+                code=process.code,
+                system_params=enhanced_system_params,
+            ),
+            request,
+            *args,
+            **kwargs,
+        )
         return (
             ProcessRun(
                 process=process,
