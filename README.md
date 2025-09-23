@@ -13,7 +13,13 @@ curl -O https://crugroup.github.io/spade/docker-compose.yml
 docker compose up
 ```
 
-## Development
+## Your files own files and processes
+
+To support your own set of files and processes you'll use **Spade SDK**.
+
+For more details see the [Spade SDK docs](https://crugroup.github.io/spade/docs/key-concepts/spade-sdk)
+
+## Spade development
 
 ### Local development - only Postgres in Docker
 
