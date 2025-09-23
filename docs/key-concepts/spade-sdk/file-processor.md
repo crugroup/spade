@@ -3,7 +3,7 @@ sidebar_position: 4
 ---
 
 # File Processor
-An **File Processor** is a class designed receive and process an arbitrary file, and are the
+A **File Processor** is a class designed receive and process an arbitrary file, and are the
 backbone of [Files](../file.md).
 
 The main method that defines a File Processor is `process`:
@@ -27,3 +27,12 @@ In the FileUpload, you can also store additional metadata about the file, such a
 * Size of the file
 * Number of records
 * Any other custom metadata that can be respresented as a JSON serialisable Python dictionary
+
+# File formats
+
+For Files you have to define a format, but you can also define a schema. If you do so, Spade will
+use a library called [pandera](https://pandera.readthedocs.io/en/stable/) and Frictionless Schemas
+to validate the file before passing it to your File Processor.
+
+This is particularly useful if you want to upload CSV or Excel files, and want to ensure that the
+data is in the correct format before processing it.
