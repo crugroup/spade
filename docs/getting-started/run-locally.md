@@ -25,8 +25,28 @@ This will bring up the Spade backend server on your local machine. You can acces
 
 To run the frontend locally:
 
-1. Clone the Spade UI repo https://github.com/crugroup/spadeui)
-2. Install the required dependencies by running `yarn install`
-3. Start the server by running `yarn start`
+1. Clone the Spade UI repo (https://github.com/crugroup/spadeui)
+2. This project requires [yarn](https://yarnpkg.com/).
+    You can install it globally on your machine.
 
-This will bring up the Spade frontend server on your local machine. You can access the server by visiting `http://localhost:5173` in your browser.
+**macOS (with Homebrew)**
+```bash
+brew install yarn
+```
+**Windows (with Chocolatey)**
+```powershell
+choco install yarn
+```
+**Linux (Debian/Ubuntu)**
+```bash
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt update && sudo apt install yarn
+```
+
+3. Install the required dependencies by running `yarn install`
+4. Start the server by running:
+    - `yarn dev`: for local development
+    - `yarn build && yarn start`: for production build + preview
+
+This will bring up the Spade frontend server on your local machine. You can access the server by visiting `http://localhost:5173` in your browser for local development or `http://localhost:4173` in your browser for production build and preview.
