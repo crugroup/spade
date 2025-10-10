@@ -49,7 +49,7 @@ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 sudo apt update && sudo apt install yarn
 ```
-⚠️ For installing yarn on Windows and Linux have not been tested, please run those commands with caution.
+⚠️ Installing yarn on Windows and Linux has not been tested; please run those commands with caution.
 
 3. Install the required dependencies by running `yarn install`
 4. Start the server by running:
