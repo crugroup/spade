@@ -179,6 +179,18 @@ docker compose -f local.yml run --rm django pip list
 docker compose -f local.yml run --rm django pip list | grep -E "(Django|django-|rest|pytest)"
 ```
 
+#### Check for dependency conflicts
+```bash
+docker compose -f local.yml run --rm django pip check
+```
+Should return "No broken requirements found" if all dependencies are compatible.
+
+#### Check for outdated packages
+```bash
+docker compose -f local.yml run --rm django pip list --outdated
+```
+Shows available updates. Review carefully before upgrading major versions.
+
 #### Upgrade dependencies
 1. Edit `requirements/base.txt`, `requirements/local.txt`, or `requirements/production.txt`
 2. Update version numbers (e.g., `django==5.2.3`)
@@ -190,16 +202,40 @@ docker compose -f local.yml build django
 ```bash
 docker compose -f local.yml up -d
 ```
-
-#### Check for outdated packages
+5. Run tests to verify:
 ```bash
-docker compose -f local.yml run --rm django pip list --outdated
+docker compose -f local.yml run --rm django pytest
 ```
+
+#### Fix common dependency issues:
+
+**Django version conflict:**
+```bash
+# Keep Django 5.2.3 (not 6.0) for dj-rest-auth compatibility
+# Edit requirements/base.txt: django==5.2.3
+docker compose -f local.yml build django
+```
+
+**Dependency conflict resolution:**
+```bash
+# Check what's causing the conflict
+docker compose -f local.yml run --rm django pip check
+
+# View dependency tree
+docker compose -f local.yml run --rm django pip show <package-name>
+```
+
+**Major version upgrades (handle with care):**
+- Django 5 → 6: Breaking changes, test thoroughly
+- Frictionless 4 → 5: Major API changes
+- isort 6 → 7: Configuration changes
+- pylint 3 → 4: New rules and breaking changes
 
 ### Maintenance Checklist
 - [ ] All services start: `docker compose -f local.yml ps`
 - [ ] Tests pass: 47/47 tests passing
 - [ ] Pre-commit hooks pass: 16/16 hooks
+- [ ] No dependency conflicts: `pip check` returns clean
 - [ ] No database migration warnings
 - [ ] API responding: `curl http://localhost:8081/api/v1/`
 - [ ] Admin accessible: `http://localhost:8081/admin/`
