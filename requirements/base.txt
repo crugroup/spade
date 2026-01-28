@@ -29,4 +29,4 @@ rules==3.5  # https://github.com/dfunckt/django-rules
 
 spadesdk==0.4.0
 cryptography>=46.0.1  # For encrypting secret variables
-pandera[io, pandas]>=0.26.1  # For validating data schemas with frictionless support
+pandera[io, pandas, frictionless]>=0.26.1  # For validating data schemas with frictionless support
