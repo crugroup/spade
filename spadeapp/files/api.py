@@ -109,8 +109,7 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         )
 
         return Response(
-            status=status.HTTP_200_OK if run.result != "failed" else status.HTTP_400_BAD_REQUEST,
-            data=serializer.data
+            status=status.HTTP_200_OK if run.result != "failed" else status.HTTP_400_BAD_REQUEST, data=serializer.data
         )
 
 
