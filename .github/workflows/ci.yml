@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build the Stack
         run: docker compose -f local.yml build
