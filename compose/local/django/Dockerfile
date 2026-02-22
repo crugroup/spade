@@ -1,5 +1,5 @@
 # define an alias for the specific python version used in this file.
-FROM python:3.13-slim-bookworm AS python
+FROM python:3.13-slim-trixie AS python
 
 # Python build stage
 FROM python AS python-build-stage
@@ -62,6 +62,10 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
 COPY ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
+
+COPY ./compose/production/django/wait_for_postgres.sh /wait_for_postgres.sh
+RUN sed -i 's/\r$//g' /wait_for_postgres.sh
+RUN chmod +x /wait_for_postgres.sh
 
 COPY ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start

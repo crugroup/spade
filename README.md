@@ -91,7 +91,7 @@ docker compose -f local.yml up -d
 Starts Django, PostgreSQL, and SpadeUI containers.
 - Django API: `http://localhost:8081`
 - PostgreSQL: port 5432
-- SpadeUI: `http://localhost:3000`
+- SpadeUI: `http://localhost:8080`
 
 #### View logs
 ```bash
