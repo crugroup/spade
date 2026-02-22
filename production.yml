@@ -3,7 +3,7 @@ volumes:
   spade_production_postgres_data: {}
 
 services:
-  spade:
+  django:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
@@ -24,7 +24,7 @@ services:
     image: ghcr.io/crugroup/spadeui:latest
     container_name: spadeui_production
     depends_on:
-      - spade
+      - django
     ports:
       - '3000:80'
 

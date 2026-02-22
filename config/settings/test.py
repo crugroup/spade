@@ -36,17 +36,3 @@ REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = (  # noqa: F405
     "rest_framework.authentication.SessionAuthentication",
     "rest_framework.authentication.TokenAuthentication",
 )
-
-# STATIC
-# ------------------------
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-# MEDIA
-# ------------------------------------------------------------------------------
-INSTALLED_APPS = ["django.contrib.staticfiles"] + INSTALLED_APPS  # noqa: F405
