@@ -16,7 +16,7 @@ services:
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
-    command: /start
+    command: start
     ports:
       - '8000:5000'
 

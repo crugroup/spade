@@ -57,6 +57,9 @@ COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
+COPY --chown=django:django ./compose/production/django/wait_for_postgres.sh /wait_for_postgres.sh
+RUN sed -i 's/\r$//g' /wait_for_postgres.sh
+RUN chmod +x /wait_for_postgres.sh
 
 COPY --chown=django:django ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
