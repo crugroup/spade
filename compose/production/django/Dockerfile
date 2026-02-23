@@ -1,6 +1,6 @@
 
 # define an alias for the specific python version used in this file.
-FROM python:3.13-slim-bookworm AS python
+FROM python:3.13-slim-trixie AS python
 
 # Python build stage
 FROM python AS python-build-stage
@@ -57,6 +57,9 @@ COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
+COPY --chown=django:django ./compose/production/django/wait_for_postgres.sh /wait_for_postgres.sh
+RUN sed -i 's/\r$//g' /wait_for_postgres.sh
+RUN chmod +x /wait_for_postgres.sh
 
 COPY --chown=django:django ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
@@ -72,7 +75,11 @@ RUN chown django:django ${APP_HOME}
 USER django
 
 RUN DATABASE_URL="" \
-  DJANGO_SETTINGS_MODULE="config.settings.test" \
+  DJANGO_SETTINGS_MODULE="config.settings.staticfiles" \
   python manage.py compilemessages
+
+RUN DATABASE_URL="" \
+  DJANGO_SETTINGS_MODULE="config.settings.staticfiles" \
+  python manage.py collectstatic
 
 ENTRYPOINT ["/entrypoint"]

@@ -99,7 +99,7 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         file = self.get_object()
 
         serializer = serializers.FileUploadSerializer(
-            service.FileService.process_file(
+            run := service.FileService.process_file(
                 file=file,
                 data=request.data["file"].read(),
                 filename=request.data["filename"],
@@ -108,7 +108,9 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
             )
         )
 
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        return Response(
+            status=status.HTTP_200_OK if run.result != "failed" else status.HTTP_400_BAD_REQUEST, data=serializer.data
+        )
 
 
 class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):

@@ -54,7 +54,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         )
 
         return Response(
-            status=status.HTTP_200_OK if run.status != "error" else status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status=status.HTTP_200_OK if run.status != "failed" else status.HTTP_400_BAD_REQUEST,
             data=serializer.data,
         )
 
