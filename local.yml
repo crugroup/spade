@@ -16,7 +16,7 @@ services:
       - ./.envs/.local/.postgres
     ports:
       - '8081:8000'
-    command: /start
+    command: start
 
   spadeui:
     image: ghcr.io/crugroup/spadeui:latest
