@@ -1,10 +1,19 @@
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 
 from .models import Variable, VariableSet
 
 
 class VariableService:
     """Service class for managing variables and variable sets."""
+
+    @staticmethod
+    def _get_variables_from_owner(owner) -> dict[str, str]:
+        variables_dict = {}
+
+        for variable_set in owner.variable_sets.all():
+            variables_dict.update(variable_set.get_variables_dict())
+
+        return variables_dict
 
     @staticmethod
     def get_variables_for_process(process_id: int) -> dict[str, str]:
@@ -19,18 +28,17 @@ class VariableService:
         """
         from spadeapp.processes.models import Process
 
-        variables_dict = {}
-
         try:
-            process = Process.objects.prefetch_related("variable_sets__variables").get(id=process_id)
-
-            # Get all variable sets associated with the process
-            for variable_set in process.variable_sets.all():
-                variables_dict.update(variable_set.get_variables_dict())
+            process = Process.objects.prefetch_related(Prefetch("variable_sets__variables")).get(id=process_id)
+            return VariableService._get_variables_from_owner(process)
         except Process.DoesNotExist:
-            pass
+            return {}
 
-        return variables_dict
+    @staticmethod
+    def get_variables_for_process_instance(process) -> dict[str, str]:
+        """Get all variables for a prefetched process instance."""
+
+        return VariableService._get_variables_from_owner(process)
 
     @staticmethod
     def get_variables_for_file(file_id: int) -> dict[str, str]:
@@ -45,18 +53,17 @@ class VariableService:
         """
         from spadeapp.files.models import File
 
-        variables_dict = {}
-
         try:
-            file = File.objects.prefetch_related("variable_sets__variables").get(id=file_id)
-
-            # Get all variable sets associated with the file
-            for variable_set in file.variable_sets.all():
-                variables_dict.update(variable_set.get_variables_dict())
+            file = File.objects.prefetch_related(Prefetch("variable_sets__variables")).get(id=file_id)
+            return VariableService._get_variables_from_owner(file)
         except File.DoesNotExist:
-            pass
+            return {}
 
-        return variables_dict
+    @staticmethod
+    def get_variables_for_file_instance(file) -> dict[str, str]:
+        """Get all variables for a prefetched file instance."""
+
+        return VariableService._get_variables_from_owner(file)
 
     @staticmethod
     def get_variables_for_variable_set(variable_set_id: int) -> dict[str, str]:
