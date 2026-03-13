@@ -161,6 +161,12 @@ docker compose -f local.yml run --rm django python manage.py makemigrations
 docker compose -f local.yml run --rm django python manage.py migrate
 ```
 
+#### Seed shared preview layout
+```bash
+docker compose -f local.yml run --rm django python manage.py seed_preview_layout
+```
+Creates the local preview files and processes used for UI review, including mixed process statuses.
+
 #### Access Django shell
 ```bash
 docker compose -f local.yml run --rm django python manage.py shell
