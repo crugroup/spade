@@ -18,7 +18,7 @@ class ProcessFilterSet(filters_drf.FilterSet):
 
 
 class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
-    queryset = models.Process.objects.all()
+    queryset = models.Process.objects.select_related("executor").prefetch_related("tags", "variable_sets__variables")
     serializer_class = serializers.ProcessSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = ProcessFilterSet
@@ -32,11 +32,19 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.Process.get_perm("view"), obj),
-            queryset,
+        viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
+        latest_runs_by_process_id = service.ProcessService.get_latest_runs_for_processes(
+            viewable_objects,
+            request,
         )
-        serializer = self.get_serializer(viewable_objects, many=True)
+        serializer = self.get_serializer(
+            viewable_objects,
+            many=True,
+            context={
+                **self.get_serializer_context(),
+                "latest_runs_by_process_id": latest_runs_by_process_id,
+            },
+        )
         return Response(serializer.data)
 
     @extend_schema(
@@ -60,7 +68,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
 
 class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = models.ProcessRun.objects.all()
+    queryset = models.ProcessRun.objects.select_related("process", "user")
     serializer_class = serializers.ProcessRunSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = (
@@ -83,7 +91,11 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
             return super().list(request, *args, **kwargs)
 
         try:
-            process = models.Process.objects.get(id=process_id)
+            process = (
+                models.Process.objects.select_related("executor")
+                .prefetch_related("variable_sets__variables")
+                .get(id=process_id)
+            )
         except models.Process.DoesNotExist:
             return Response([])
 

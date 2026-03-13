@@ -47,7 +47,7 @@ class FileService:
 
         try:
             # Get variables for the file and merge with system params
-            variables = VariableService.get_variables_for_file(file.id)
+            variables = VariableService.get_variables_for_file_instance(file)
             enhanced_system_params = VariableService.merge_variables(file.system_params or {}, variables)
 
             logger.info(f"File {file.code} processing with {len(variables)} variables")
