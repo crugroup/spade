@@ -14,6 +14,9 @@ class ProcessSerializer(TaggitSerializer, serializers.ModelSerializer):
         fields = "__all__"
 
     def get_latest_run(self, obj):
+        if not self.context.get("include_latest_run", False):
+            return None
+
         request = self.context.get("request")
         if request is None:
             return None
@@ -33,6 +36,11 @@ class ProcessRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProcessRun
         fields = "__all__"
+
+
+class ProcessLatestRunSerializer(serializers.Serializer):
+    process_id = serializers.IntegerField()
+    latest_run = ProcessRunSerializer(allow_null=True)
 
 
 class ExecutorSerializer(serializers.ModelSerializer):

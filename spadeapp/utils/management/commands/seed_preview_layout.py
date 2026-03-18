@@ -91,6 +91,37 @@ PREVIEW_PROCESSES = (
 class Command(BaseCommand):
     help = "Seed shared preview files and processes for local UI review"
 
+    @staticmethod
+    def _get_or_create_preview_file_processor() -> FileProcessor:
+        processor_name = "Example File Processor"
+        processor_callable = "spadeapp.examples.processor.ExampleFileProcessor"
+        processor_description = "Example file processor for local preview data"
+
+        file_processor = FileProcessor.objects.filter(callable=processor_callable).first()
+        name_match = FileProcessor.objects.filter(name=processor_name).first()
+
+        if file_processor is None and name_match is not None:
+            file_processor = name_match
+        elif file_processor is not None and name_match is not None and file_processor.pk != name_match.pk:
+            raise CommandError(
+                "Cannot seed preview layout because FileProcessor records already exist with the preview "
+                "name and callable on different rows. Reconcile those duplicates first."
+            )
+
+        if file_processor is None:
+            file_processor = FileProcessor.objects.create(
+                name=processor_name,
+                description=processor_description,
+                callable=processor_callable,
+            )
+            return file_processor
+
+        file_processor.name = processor_name
+        file_processor.description = processor_description
+        file_processor.callable = processor_callable
+        file_processor.save()
+        return file_processor
+
     @transaction.atomic
     def handle(self, *args, **options):
         user = get_user_model().objects.order_by("id").first()
@@ -101,16 +132,7 @@ class Command(BaseCommand):
         if file_format is None:
             raise CommandError("No FileFormat found. Create one before seeding preview files.")
 
-        file_processor, _ = FileProcessor.objects.get_or_create(
-            name="Example File Processor",
-            defaults={
-                "description": "Example file processor for local preview data",
-                "callable": "spadeapp.examples.processor.ExampleFileProcessor",
-            },
-        )
-        file_processor.description = "Example file processor for local preview data"
-        file_processor.callable = "spadeapp.examples.processor.ExampleFileProcessor"
-        file_processor.save()
+        file_processor = self._get_or_create_preview_file_processor()
 
         preview_executor, _ = Executor.objects.get_or_create(
             name="Local Preview Executor",
