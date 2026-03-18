@@ -33,18 +33,40 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
         viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
-        latest_runs_by_process_id = service.ProcessService.get_latest_runs_for_processes(
-            viewable_objects,
-            request,
-        )
         serializer = self.get_serializer(
             viewable_objects,
             many=True,
             context={
                 **self.get_serializer_context(),
-                "latest_runs_by_process_id": latest_runs_by_process_id,
+                "include_latest_run": False,
             },
         )
+        return Response(serializer.data)
+
+    @extend_schema(
+        responses={200: serializers.ProcessLatestRunSerializer(many=True)},
+    )
+    @decorators.action(detail=False, methods=["get"])
+    def latest_runs(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        ids_param = request.query_params.get("ids")
+        if ids_param:
+            requested_ids = {int(value) for value in ids_param.split(",") if value.strip().isdigit()}
+            queryset = queryset.filter(id__in=requested_ids)
+
+        viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
+        latest_runs_by_process_id = service.ProcessService.get_latest_runs_for_processes(viewable_objects, request)
+        payload = [
+            {
+                "process_id": process.id,
+                "latest_run": serializers.ProcessRunSerializer(latest_runs_by_process_id.get(process.id)).data
+                if process.id in latest_runs_by_process_id
+                else None,
+            }
+            for process in viewable_objects
+        ]
+
+        serializer = serializers.ProcessLatestRunSerializer(payload, many=True)
         return Response(serializer.data)
 
     @extend_schema(

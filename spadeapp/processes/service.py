@@ -39,8 +39,37 @@ class ProcessService:
         )
 
     @staticmethod
+    def _get_latest_runs_cache_key(process_ids: list[int], request) -> str | None:
+        if not process_ids:
+            return None
+
+        user_id = getattr(getattr(request, "user", None), "id", "anon")
+        return ":".join(["latest-process-runs", str(user_id), ",".join(map(str, sorted(process_ids)))])
+
+    @staticmethod
     def get_latest_runs_for_processes(processes: list[Process], request) -> dict[int, ProcessRun]:
         """Get the latest run for each process with a batched local-query path."""
+
+        cache_timeout = getattr(settings, "SPADE_LATEST_RUNS_CACHE_TIMEOUT", 60)
+        process_ids = [process.id for process in processes]
+        cache_key = ProcessService._get_latest_runs_cache_key(process_ids, request)
+        if cache_key and cache_timeout > 0:
+            cached_payload = cache.get(cache_key)
+            if cached_payload is not None:
+                user_ids = {run["user_id"] for run in cached_payload.values() if run.get("user_id")}
+                users_by_id = User.objects.in_bulk(user_ids)
+                return {
+                    int(process_id): ProcessRun(
+                        process=next(process for process in processes if process.id == int(process_id)),
+                        status=run["status"],
+                        result=run["result"],
+                        output=run["output"],
+                        error_message=run["error_message"],
+                        created_at=run["created_at"],
+                        user=users_by_id.get(run.get("user_id")),
+                    )
+                    for process_id, run in cached_payload.items()
+                }
 
         latest_runs_by_process_id: dict[int, ProcessRun] = {}
         local_process_ids = [process.id for process in processes if not process.executor.history_provider_callable]
@@ -75,6 +104,23 @@ class ProcessService:
             latest_run = next(iter(ProcessService.get_runs(process, request)), None)
             if latest_run is not None:
                 latest_runs_by_process_id[process.id] = latest_run
+
+        if cache_key and cache_timeout > 0:
+            cache.set(
+                cache_key,
+                {
+                    process_id: {
+                        "status": run.status,
+                        "result": run.result,
+                        "output": run.output,
+                        "error_message": run.error_message,
+                        "created_at": run.created_at,
+                        "user_id": getattr(run.user, "id", None),
+                    }
+                    for process_id, run in latest_runs_by_process_id.items()
+                },
+                cache_timeout,
+            )
 
         return latest_runs_by_process_id
 
@@ -174,7 +220,7 @@ class ProcessService:
         variables = VariableService.get_variables_for_process_instance(process)
         enhanced_system_params = VariableService.merge_variables(process.system_params or {}, variables)
 
-        cache_timeout = getattr(settings, "SPADE_HISTORY_PROVIDER_CACHE_TIMEOUT", 15)
+        cache_timeout = getattr(settings, "SPADE_HISTORY_PROVIDER_CACHE_TIMEOUT", 60)
         cache_key = ProcessService._get_history_cache_key(process, request)
         cached_runs = cache.get(cache_key) if cache_key and cache_timeout > 0 else None
 
