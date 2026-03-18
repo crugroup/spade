@@ -115,7 +115,7 @@ class ProcessService:
                         "output": run.output,
                         "error_message": run.error_message,
                         "created_at": run.created_at,
-                        "user_id": getattr(run.user, "id", None),
+                        "user_id": getattr(run, "user_id", None),
                     }
                     for process_id, run in latest_runs_by_process_id.items()
                 },
