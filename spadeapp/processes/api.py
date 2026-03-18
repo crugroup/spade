@@ -27,6 +27,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     permission_type_map = {
         **AutoPermissionViewSetMixin.permission_type_map,
         "list": "list",
+        "latest_runs": "list",
         "run": "run",
     }
 
