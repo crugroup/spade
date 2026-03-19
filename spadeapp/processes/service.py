@@ -56,6 +56,8 @@ class ProcessService:
         if cache_key and cache_timeout > 0:
             cached_payload = cache.get(cache_key)
             if cached_payload is not None:
+                user_ids = {run["user_id"] for run in cached_payload.values() if run.get("user_id")}
+                users_by_id = User.objects.in_bulk(user_ids)
                 return {
                     int(process_id): ProcessRun(
                         process=next(process for process in processes if process.id == int(process_id)),
@@ -64,7 +66,7 @@ class ProcessService:
                         output=run["output"],
                         error_message=run["error_message"],
                         created_at=run["created_at"],
-                        user_id=run.get("user_id"),
+                        user=users_by_id.get(run.get("user_id")),
                     )
                     for process_id, run in cached_payload.items()
                 }
@@ -246,6 +248,8 @@ class ProcessService:
             if cache_key and cache_timeout > 0:
                 cache.set(cache_key, cached_runs, cache_timeout)
 
+        user_ids = {run["user_id"] for run in cached_runs if run.get("user_id")}
+        users_by_id = User.objects.in_bulk(user_ids)
         return [
             ProcessRun(
                 process=process,
@@ -254,7 +258,7 @@ class ProcessService:
                 output=run["output"],
                 error_message=run["error_message"],
                 created_at=run["created_at"],
-                user_id=run.get("user_id"),
+                user=users_by_id.get(run.get("user_id")),
             )
             for run in cached_runs
         ]

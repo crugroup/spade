@@ -60,7 +60,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         payload = [
             {
                 "process_id": process.id,
-                "latest_run": serializers.ProcessRunSerializer(latest_runs_by_process_id.get(process.id)).data
+                "latest_run": latest_runs_by_process_id.get(process.id)
                 if process.id in latest_runs_by_process_id
                 else None,
             }
