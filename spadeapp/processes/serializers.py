@@ -33,6 +33,8 @@ class ProcessRunParamsSerializer(serializers.Serializer):
 
 
 class ProcessRunSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="user_id", allow_null=True, read_only=True)
+
     class Meta:
         model = models.ProcessRun
         fields = "__all__"

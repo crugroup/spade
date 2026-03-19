@@ -259,7 +259,7 @@ class ProcessService:
                 output=run["output"],
                 error_message=run["error_message"],
                 created_at=run["created_at"],
-                user=users_by_id.get(run["user_id"]),
+                user_id=run.get("user_id"),
             )
             for run in cached_runs
         ]
