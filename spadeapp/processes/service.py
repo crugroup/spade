@@ -57,7 +57,6 @@ class ProcessService:
             cached_payload = cache.get(cache_key)
             if cached_payload is not None:
                 user_ids = {run["user_id"] for run in cached_payload.values() if run.get("user_id")}
-                users_by_id = User.objects.in_bulk(user_ids)
                 return {
                     int(process_id): ProcessRun(
                         process=next(process for process in processes if process.id == int(process_id)),
@@ -66,7 +65,7 @@ class ProcessService:
                         output=run["output"],
                         error_message=run["error_message"],
                         created_at=run["created_at"],
-                        user=users_by_id.get(run.get("user_id")),
+                            user_id=run.get("user_id"),
                     )
                     for process_id, run in cached_payload.items()
                 }
