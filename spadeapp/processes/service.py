@@ -65,7 +65,7 @@ class ProcessService:
                         output=run["output"],
                         error_message=run["error_message"],
                         created_at=run["created_at"],
-                            user_id=run.get("user_id"),
+                        user_id=run.get("user_id"),
                     )
                     for process_id, run in cached_payload.items()
                 }
