@@ -61,7 +61,10 @@ class FileProcessorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
 
 class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
-    queryset = models.File.objects.all()
+    queryset = models.File.objects.select_related("format", "processor", "linked_process").prefetch_related(
+        "tags",
+        "variable_sets__variables",
+    )
     serializer_class = serializers.FileSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = FileFilterSet
@@ -114,7 +117,7 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
 
 class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = models.FileUpload.objects.all()
+    queryset = models.FileUpload.objects.select_related("file", "user", "linked_process_run")
     serializer_class = serializers.FileUploadSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = (

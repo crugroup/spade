@@ -18,7 +18,7 @@ class ProcessFilterSet(filters_drf.FilterSet):
 
 
 class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
-    queryset = models.Process.objects.all()
+    queryset = models.Process.objects.select_related("executor").prefetch_related("tags", "variable_sets__variables")
     serializer_class = serializers.ProcessSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_class = ProcessFilterSet
@@ -27,16 +27,47 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     permission_type_map = {
         **AutoPermissionViewSetMixin.permission_type_map,
         "list": "list",
+        "latest_runs": "list",
         "run": "run",
     }
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.Process.get_perm("view"), obj),
-            queryset,
+        viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
+        serializer = self.get_serializer(
+            viewable_objects,
+            many=True,
+            context={
+                **self.get_serializer_context(),
+                "include_latest_run": False,
+            },
         )
-        serializer = self.get_serializer(viewable_objects, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        responses={200: serializers.ProcessLatestRunSerializer(many=True)},
+    )
+    @decorators.action(detail=False, methods=["get"])
+    def latest_runs(self, request, *args, **kwargs) -> Response:
+        queryset = self.filter_queryset(self.get_queryset())
+        ids_param = request.query_params.get("ids")
+        if ids_param:
+            requested_ids = {int(value) for value in ids_param.split(",") if value.strip().isdigit()}
+            queryset = queryset.filter(id__in=requested_ids)
+
+        viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
+        latest_runs_by_process_id = service.ProcessService.get_latest_runs_for_processes(viewable_objects, request)
+        payload = [
+            {
+                "process_id": process.id,
+                "latest_run": latest_runs_by_process_id.get(process.id)
+                if process.id in latest_runs_by_process_id
+                else None,
+            }
+            for process in viewable_objects
+        ]
+
+        serializer = serializers.ProcessLatestRunSerializer(payload, many=True)
         return Response(serializer.data)
 
     @extend_schema(
@@ -60,7 +91,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
 
 class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = models.ProcessRun.objects.all()
+    queryset = models.ProcessRun.objects.select_related("process", "user")
     serializer_class = serializers.ProcessRunSerializer
     permission_classes = [permissions.DjangoModelPermissions]
     filterset_fields = (
@@ -83,7 +114,11 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
             return super().list(request, *args, **kwargs)
 
         try:
-            process = models.Process.objects.get(id=process_id)
+            process = (
+                models.Process.objects.select_related("executor")
+                .prefetch_related("variable_sets__variables")
+                .get(id=process_id)
+            )
         except models.Process.DoesNotExist:
             return Response([])
 
