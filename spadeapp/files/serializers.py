@@ -26,10 +26,14 @@ class FileProcessorSerializer(serializers.ModelSerializer):
 
 class FileSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField(required=False)
+    one_move_process_ids = serializers.SerializerMethodField()
 
     class Meta:
         model = models.File
         fields = "__all__"
+
+    def get_one_move_process_ids(self, obj):
+        return obj.get_one_move_process_ids()
 
 
 class FileUploadSerializer(serializers.ModelSerializer):

@@ -129,6 +129,38 @@ class File(RulesModel):
     def __str__(self):
         return self.code
 
+    def get_one_move_process_ids(self) -> list[int]:
+        process_ids = set(self.one_move_links.values_list("process_id", flat=True))
+        if self.linked_process_id is not None:
+            process_ids.add(self.linked_process_id)
+        return sorted(process_ids)
+
+    def is_available_for_one_move_process(self, process) -> bool:
+        process_id = getattr(process, "id", process)
+        return process_id in self.get_one_move_process_ids()
+
+
+class ProcessFileLink(RulesModel):
+    file = models.ForeignKey(File, on_delete=models.CASCADE, related_name="one_move_links")
+    process = models.ForeignKey(process_models.Process, on_delete=models.CASCADE, related_name="one_move_links")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-pk",)
+        constraints = [
+            models.UniqueConstraint(fields=("file", "process"), name="files_processfilelink_unique_file_process")
+        ]
+        rules_permissions = {
+            "add": defer_rule("files.add_file"),
+            "view": defer_rule("files.view_file"),
+            "list": defer_rule("files.list_file"),
+            "change": defer_rule("files.change_file"),
+            "delete": defer_rule("files.delete_file"),
+        }
+
+    def __str__(self):
+        return f"{self.file.code} -> {self.process.code}"
+
 
 class FileUpload(RulesModel):
     class Results(models.TextChoices):

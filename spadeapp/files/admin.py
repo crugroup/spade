@@ -72,6 +72,16 @@ class FileAdmin(admin.ModelAdmin):
 admin.site.register(models.File, FileAdmin)
 
 
+class ProcessFileLinkAdmin(admin.ModelAdmin):
+    list_display = ["file", "process", "created_at"]
+    search_fields = ["file__code", "process__code"]
+    list_filter = ["process", "created_at"]
+    readonly_fields = ["created_at"]
+
+
+admin.site.register(models.ProcessFileLink, ProcessFileLinkAdmin)
+
+
 class FileUploadAdminForm(forms.ModelForm):
     class Meta:
         model = models.FileUpload

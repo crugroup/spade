@@ -4,6 +4,7 @@ from rest_framework import decorators, parsers, permissions, status, viewsets
 from rest_framework.response import Response
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
+from ..processes import models as process_models
 from ..utils import filters as utils_filters
 from ..utils.permissions import PostRequiresViewPermission
 from . import models, serializers, service
@@ -63,6 +64,7 @@ class FileProcessorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     queryset = models.File.objects.select_related("format", "processor", "linked_process").prefetch_related(
         "tags",
+        "one_move_links__process",
         "variable_sets__variables",
     )
     serializer_class = serializers.FileSerializer
@@ -89,6 +91,21 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         request={"*/*": serializers.FileContentSerializer},
         parameters=[
             OpenApiParameter(name="filename", description="Filename", required=True, type=str),
+            OpenApiParameter(
+                name="process_id",
+                description=(
+                    "Optional process to run after a successful upload. OneMove can supply "
+                    "this to start a selected process; defaults to the file's legacy linked process."
+                ),
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="run_linked_process",
+                description="Whether to run the linked process after upload. Defaults to true.",
+                required=False,
+                type=bool,
+            ),
         ],
         responses={200: serializers.FileUploadSerializer},
     )
@@ -100,19 +117,55 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     )
     def upload(self, request, pk, format=None):
         file = self.get_object()
+        linked_process = None
+        run_linked_process = str(request.data.get("run_linked_process", "true")).lower() not in ("false", "0", "no")
+
+        process_id = request.data.get("process_id")
+        if process_id not in (None, ""):
+            try:
+                process_id = int(process_id)
+            except (TypeError, ValueError):
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"error_message": "process_id must be an integer"},
+                )
+
+            linked_process = process_models.Process.objects.filter(pk=process_id).first()
+            if linked_process is None:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"error_message": "Selected process does not exist"},
+                )
+
+            if not file.is_available_for_one_move_process(linked_process):
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"error_message": "Selected process is not linked to this file"},
+                )
+
+            if not request.user.has_perm(process_models.Process.get_perm("view"), linked_process):
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN,
+                    data={"detail": "You do not have access to that process"},
+                )
 
         serializer = serializers.FileUploadSerializer(
             run := service.FileService.process_file(
                 file=file,
-                data=request.data["file"].read(),
-                filename=request.data["filename"],
+                upload_payload={
+                    "data": request.data["file"].read(),
+                    "filename": request.data["filename"],
+                    "user_params": request.data.get("params"),
+                },
                 user=request.user,
-                user_params=request.data.get("params"),
+                linked_process=linked_process,
+                run_linked_process=run_linked_process,
             )
         )
 
         return Response(
-            status=status.HTTP_200_OK if run.result != "failed" else status.HTTP_400_BAD_REQUEST, data=serializer.data
+            status=(status.HTTP_200_OK if run.result != "failed" else status.HTTP_400_BAD_REQUEST),
+            data=serializer.data,
         )
 
 

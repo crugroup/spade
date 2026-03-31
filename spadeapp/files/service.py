@@ -17,8 +17,18 @@ logger = logging.getLogger(__name__)
 
 class FileService:
     @staticmethod
-    def process_file(file: File, data, filename, user, user_params: str) -> FileUpload:
+    def process_file(
+        file: File,
+        upload_payload: dict,
+        user,
+        linked_process=None,
+        run_linked_process=True,
+    ) -> FileUpload:
         """Process a file using the file processor."""
+
+        data = upload_payload["data"]
+        filename = upload_payload["filename"]
+        user_params = upload_payload.get("user_params")
 
         logger.info(f"Uploading to file {file} with processor {file.processor.callable}")
         processor: FileProcessor
@@ -74,12 +84,13 @@ class FileService:
             upload.output = result.output
             upload.error_message = result.error_message
             upload.save()
-            if file.linked_process and upload.result == FileUpload.Results.SUCCESS:
+            process_to_run = linked_process or file.linked_process
+            if run_linked_process and process_to_run and upload.result == FileUpload.Results.SUCCESS:
                 logger.info("Running linked process")
                 try:
-                    upload.linked_process_run = ProcessService.run_process(file.linked_process, user, user_params)
+                    upload.linked_process_run = ProcessService.run_process(process_to_run, user, user_params)
                 except Exception:
-                    logger.exception(f"Error running linked process {file.linked_process}")
+                    logger.exception(f"Error running linked process {process_to_run}")
                     pass
             upload.save()
         except Exception as e:

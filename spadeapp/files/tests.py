@@ -1,7 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from rest_framework.test import APIClient
 
-from .models import FileFormat
+from spadeapp.processes.models import Executor, Process
+
+from .models import File, FileFormat, FileProcessor, ProcessFileLink
 
 
 class FileFormatModelTest(TestCase):
@@ -130,3 +134,38 @@ class FileFormatModelTest(TestCase):
         """Test validation fails when schema data is not a dictionary."""
         with self.assertRaises(ValidationError):
             FileFormat.validate_frictionless_schema("not a dict")
+
+
+class FileUploadApiTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_superuser(
+            email="onemove@example.com",
+            password="password123",
+        )
+        self.client.force_authenticate(self.user)
+
+        self.file_format = FileFormat.objects.create(format="csv")
+        self.file_processor = FileProcessor.objects.create(
+            name="Example Processor",
+            callable="spadeapp.examples.processor.FileProcessorExample",
+        )
+        self.executor = Executor.objects.create(
+            name="Example Executor",
+            callable="spadeapp.examples.executor.ExecutorExample",
+        )
+        self.allowed_process = Process.objects.create(
+            code="Step 3: Allowed Process",
+            executor=self.executor,
+        )
+        self.disallowed_process = Process.objects.create(
+            code="Step 3: Disallowed Process",
+            executor=self.executor,
+        )
+        self.file = File.objects.create(
+            code="Step 2: Example File",
+            format=self.file_format,
+            processor=self.file_processor,
+            linked_process=self.allowed_process,
+        )
+        ProcessFileLink.objects.create(file=self.file, process=self.allowed_process)
