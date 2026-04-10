@@ -10,7 +10,7 @@ psycopg[binary]==3.3.3  # https://github.com/psycopg/psycopg
 django==6.0.4  # https://www.djangoproject.com/
 django-environ==0.13.0  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth==65.15.0  # https://github.com/pennersr/django-allauth
+django-allauth==65.15.1  # https://github.com/pennersr/django-allauth
 
 # Django REST Framework
 djangorestframework==3.17.1  # https://github.com/encode/django-rest-framework
