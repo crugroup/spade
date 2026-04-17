@@ -20,6 +20,9 @@ class AccountAdapter(DefaultAccountAdapter):
     def get_email_confirmation_url(self, request, emailconfirmation):
         return f"{settings.FRONTEND_EXTERNAL_URL}/confirm-email/{emailconfirmation.key}/"
 
+    def get_reset_password_from_key_url(self, key):
+        return f"{settings.FRONTEND_EXTERNAL_URL}/update-password/{key}/"
+
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request: HttpRequest, sociallogin: SocialLogin) -> bool:
