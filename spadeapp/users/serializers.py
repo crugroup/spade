@@ -1,3 +1,5 @@
+from dj_rest_auth.serializers import PasswordResetSerializer
+from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.validators import EmailValidator
 from rest_framework import serializers
@@ -6,6 +8,18 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
+
+
+class FrontendPasswordResetSerializer(PasswordResetSerializer):
+    def get_email_options(self):
+        def url_generator(request, user, temp_key):
+            from allauth.account.utils import user_pk_to_url_str
+
+            key = f"{user_pk_to_url_str(user)}-{temp_key}"
+            return f"{settings.FRONTEND_EXTERNAL_URL}/update-password/{key}/"
+
+        return {"url_generator": url_generator}
+
 
 logger = __import__("logging").getLogger(__name__)
 

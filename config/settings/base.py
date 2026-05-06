@@ -307,7 +307,7 @@ REST_FRAMEWORK = {
 }
 
 REST_AUTH = {
-    "PASSWORD_RESET_USE_SITES_DOMAIN": True,
+    "PASSWORD_RESET_SERIALIZER": "spadeapp.users.serializers.FrontendPasswordResetSerializer",
 }
 
 FRONTEND_EXTERNAL_URL = env("FRONTEND_EXTERNAL_URL", default="http://localhost:5173")
