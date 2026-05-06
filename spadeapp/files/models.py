@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from pandera.io import from_frictionless_schema
 from rules.contrib.models import RulesModel
 from spadesdk.file_processor import FileProcessor as SDKFileProcessor
 from taggit.managers import TaggableManager
@@ -54,13 +53,17 @@ class FileFormat(RulesModel):
         if not isinstance(schema_data, dict):
             raise exception_class("Frictionless schema must be a valid JSON object")
 
-        # Check if pandera is available for validation
-
         # Basic validation - check for common frictionless schema properties
         if "fields" not in schema_data:
             raise exception_class(
                 "Schema structure appears invalid - missing expected frictionless schema `fields` key"
             )
+
+        try:
+            from pandera.io import from_frictionless_schema
+        except ImportError:
+            # pandera frictionless support not installed — skip deep validation
+            return
 
         try:
             # Try to create a Pandera DataFrameSchema from the frictionless schema
