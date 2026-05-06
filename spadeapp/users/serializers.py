@@ -15,8 +15,8 @@ class FrontendPasswordResetSerializer(PasswordResetSerializer):
         def url_generator(request, user, temp_key):
             from allauth.account.utils import user_pk_to_url_str
 
-            key = f"{user_pk_to_url_str(user)}-{temp_key}"
-            return f"{settings.FRONTEND_EXTERNAL_URL}/update-password/{key}/"
+            uid = user_pk_to_url_str(user)
+            return f"{settings.FRONTEND_EXTERNAL_URL}/update-password/{uid}/{temp_key}/"
 
         return {"url_generator": url_generator}
 
