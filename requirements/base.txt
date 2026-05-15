@@ -27,6 +27,6 @@ django-filter==25.2  # https://github.com/carltongibson/django-filter
 # django-rules
 rules==3.5  # https://github.com/dfunckt/django-rules
 
-spadesdk==0.4.0
+spadesdk==0.5.0
 cryptography>=48.0.0  # For encrypting secret variables
 pandera[io, pandas, frictionless]>=0.31.1  # For validating data schemas with frictionless support
