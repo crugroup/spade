@@ -1,14 +1,14 @@
 -r base.txt
 
-Werkzeug[watchdog]==3.1.6 # https://github.com/pallets/werkzeug
+Werkzeug[watchdog]==3.1.8 # https://github.com/pallets/werkzeug
 ipdb==0.13.13  # https://github.com/gotcha/ipdb
 
 # Testing
 # ------------------------------------------------------------------------------
-mypy>=1.18.2  # https://github.com/python/mypy
-django-stubs[compatible-mypy]==5.2.9  # https://github.com/typeddjango/django-stubs
-djangorestframework-stubs[compatible-mypy]==3.16.8  # https://github.com/typeddjango/djangorestframework-stubs
-pytest==9.0.2  # https://github.com/pytest-dev/pytest
+mypy>=2.0.0  # https://github.com/python/mypy
+django-stubs[compatible-mypy]==6.0.5  # https://github.com/typeddjango/django-stubs
+djangorestframework-stubs[compatible-mypy]==3.17.0  # https://github.com/typeddjango/djangorestframework-stubs
+pytest==9.0.3  # https://github.com/pytest-dev/pytest
 pytest-sugar==1.1.1  # https://github.com/Frozenball/pytest-sugar
 #djangorestframework-stubs[compatible-mypy]==3.15.0  # https://github.com/typeddjango/djangorestframework-stubs
 
@@ -17,17 +17,17 @@ pytest-sugar==1.1.1  # https://github.com/Frozenball/pytest-sugar
 # ------------------------------------------------------------------------------
 flake8==7.3.0  # https://github.com/PyCQA/flake8
 flake8-isort==7.0.0  # https://github.com/gforcada/flake8-isort
-coverage==7.13.4  # https://github.com/nedbat/coveragepy
-black==26.1.0  # https://github.com/psf/black
+coverage==7.14.0  # https://github.com/nedbat/coveragepy
+black==26.5.1  # https://github.com/psf/black
 djlint==1.36.4  # https://github.com/Riverside-Healthcare/djLint
 pylint-django==2.7.0  # https://github.com/PyCQA/pylint-django
-pre-commit==4.5.1  # https://github.com/pre-commit/pre-commit
+pre-commit==4.6.0  # https://github.com/pre-commit/pre-commit
 
 # Django
 # ------------------------------------------------------------------------------
 factory-boy==3.3.3  # https://github.com/FactoryBoy/factory_boy
 
-django-debug-toolbar==6.2.0  # https://github.com/jazzband/django-debug-toolbar
+django-debug-toolbar==6.3.0  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==4.1  # https://github.com/django-extensions/django-extensions
-django-coverage-plugin==3.2.0  # https://github.com/nedbat/django_coverage_plugin
+django-coverage-plugin==3.2.2  # https://github.com/nedbat/django_coverage_plugin
 pytest-django==4.12.0  # https://github.com/pytest-dev/pytest-django

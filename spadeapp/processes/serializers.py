@@ -2,14 +2,30 @@ from rest_framework import serializers
 from taggit.serializers import TaggitSerializer, TagListSerializerField
 
 from . import models
+from .service import ProcessService
 
 
 class ProcessSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField(required=False)
+    latest_run = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Process
         fields = "__all__"
+
+    def get_latest_run(self, obj):
+        if not self.context.get("include_latest_run", False):
+            return None
+
+        request = self.context.get("request")
+        if request is None:
+            return None
+
+        latest_run = next(iter(ProcessService.get_runs(obj, request)), None)
+        if latest_run is None:
+            return None
+
+        return ProcessRunSerializer(latest_run).data
 
 
 class ProcessRunParamsSerializer(serializers.Serializer):
@@ -17,9 +33,16 @@ class ProcessRunParamsSerializer(serializers.Serializer):
 
 
 class ProcessRunSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="user_id", allow_null=True, read_only=True)
+
     class Meta:
         model = models.ProcessRun
         fields = "__all__"
+
+
+class ProcessLatestRunSerializer(serializers.Serializer):
+    process_id = serializers.IntegerField()
+    latest_run = ProcessRunSerializer(allow_null=True)
 
 
 class ExecutorSerializer(serializers.ModelSerializer):

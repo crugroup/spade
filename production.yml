@@ -29,8 +29,8 @@ services:
       - '3000:80'
 
   postgres:
-    image: postgres:16
+    image: postgres:18
     volumes:
-      - spade_production_postgres_data:/var/lib/postgresql/data
+      - spade_production_postgres_data:/var/lib/postgresql
     env_file:
       - ./.envs/.production/.postgres

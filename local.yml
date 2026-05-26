@@ -28,11 +28,11 @@ services:
       - '8080:80'
 
   postgres:
-    image: postgres:16
+    image: postgres:18
     ports:
       - '5432:5432'
     volumes:
-      - spadeapp_local_postgres_data:/var/lib/postgresql/data
+      - spadeapp_local_postgres_data:/var/lib/postgresql
     env_file:
       - ./.envs/.local/.postgres
 
