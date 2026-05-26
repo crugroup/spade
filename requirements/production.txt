@@ -1,8 +1,8 @@
 -r base.txt
 
-gunicorn==25.0.1  # https://github.com/benoitc/gunicorn
+gunicorn==26.0.0  # https://github.com/benoitc/gunicorn
 
 
 # Django
 # ------------------------------------------------------------------------------
-django-anymail==14.0  # https://github.com/anymail/django-anymail
+django-anymail==15.0  # https://github.com/anymail/django-anymail

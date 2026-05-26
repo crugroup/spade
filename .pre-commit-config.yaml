@@ -18,14 +18,14 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: '1.28.0'
+    rev: '1.30.0'
     hooks:
       - id: django-upgrade
         args: ['--target-version', '5.2']
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.1
+    rev: v0.15.14
     hooks:
       - id: ruff
         args: [ --fix ]
