@@ -33,6 +33,9 @@ select = [
     "B",
     "Q",
     "PL",
+    "SIM",
+    "C4",
+    "RUF",
 ]
 ignore = [
     "DJ001", "PLC0415"
