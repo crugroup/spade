@@ -176,7 +176,7 @@ class VariableService:
             variable_set = VariableSet.objects.get(id=variable_set_id)
             process.variable_sets.add(variable_set)
             return True
-        except (Process.DoesNotExist, VariableSet.DoesNotExist):
+        except Process.DoesNotExist, VariableSet.DoesNotExist:
             return False
 
     @staticmethod
@@ -198,7 +198,7 @@ class VariableService:
             variable_set = VariableSet.objects.get(id=variable_set_id)
             file.variable_sets.add(variable_set)
             return True
-        except (File.DoesNotExist, VariableSet.DoesNotExist):
+        except File.DoesNotExist, VariableSet.DoesNotExist:
             return False
 
     @staticmethod

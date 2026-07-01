@@ -69,7 +69,7 @@ class FileFormat(RulesModel):
             # Try to create a Pandera DataFrameSchema from the frictionless schema
             from_frictionless_schema(schema_data)
         except Exception as e:
-            raise exception_class(f"Invalid frictionless schema: {str(e)}") from e
+            raise exception_class(f"Invalid frictionless schema: {e!s}") from e
 
 
 class FileProcessor(RulesModel):
