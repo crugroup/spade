@@ -69,7 +69,7 @@ class ObtainTokenView(generics.RetrieveAPIView):
 
     def get_object(self):
         Token.objects.filter(user=self.request.user).delete()
-        token, created = Token.objects.get_or_create(user=self.request.user)
+        token, _created = Token.objects.get_or_create(user=self.request.user)
         return token
 
 
