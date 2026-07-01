@@ -44,11 +44,9 @@ class Variable(RulesModel):
 
     def save(self, *args, **kwargs):
         """Override save to encrypt secret variables."""
-        if self.is_secret and self.value:
-            # Encrypt the value if it's a secret and not already encrypted
-            if not self.value.startswith("gAAAAAB"):  # Fernet tokens start with this
-                fernet = Fernet(self._get_encryption_key())
-                self.value = fernet.encrypt(self.value.encode()).decode()
+        if self.is_secret and self.value and not self.value.startswith("gAAAAAB"):
+            fernet = Fernet(self._get_encryption_key())
+            self.value = fernet.encrypt(self.value.encode()).decode()
         super().save(*args, **kwargs)
 
     def get_decrypted_value(self):

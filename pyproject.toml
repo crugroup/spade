@@ -38,7 +38,7 @@ select = [
     "RUF",
 ]
 ignore = [
-    "DJ001", "PLC0415"
+    "DJ001", "PLC0415", "RUF012", "RUF005"
 ]
 
 [tool.ruff.lint.isort]
