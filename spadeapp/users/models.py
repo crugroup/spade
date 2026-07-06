@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.db.models import EmailField
 from django.utils.translation import gettext_lazy as _
 
@@ -35,3 +36,24 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ("last_name", "first_name")
+
+
+class UserFavorite(models.Model):
+    """Per-user favorites for files and processes."""
+
+    RESOURCE_CHOICES = [
+        ("files", "Files"),
+        ("processes", "Processes"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    resource = models.CharField(max_length=20, choices=RESOURCE_CHOICES)
+    resource_id = models.IntegerField()
+    label = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        unique_together = ("user", "resource", "resource_id")
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return f"{self.user.email} → {self.resource}/{self.resource_id}"

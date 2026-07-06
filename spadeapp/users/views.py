@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
+from .models import UserFavorite
 from .serializers import (
     GroupSerializer,
     PermissionSerializer,
@@ -117,3 +118,52 @@ class PermissionsView(generics.ListAPIView):
     ordering = ("name",)
     throttle_classes = [UserRateThrottle]
     pagination_class = None
+
+
+class FavoritesView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    """List, add, and remove user favorites."""
+
+    permission_classes = [IsAuthenticated]
+    ALLOWED_RESOURCES = {choice[0] for choice in UserFavorite.RESOURCE_CHOICES}
+
+    def _validate_resource(self, resource):
+        if resource not in self.ALLOWED_RESOURCES:
+            return Response(
+                {"error": f"Invalid resource. Must be one of: {sorted(self.ALLOWED_RESOURCES)}"},
+                status=400,
+            )
+        return None
+
+    def get(self, request):
+        favorites = request.user.favorites.all().values("id", "resource", "resource_id", "label")
+        return Response(list(favorites))
+
+    def post(self, request):
+        resource = request.data.get("resource")
+        resource_id = request.data.get("resource_id")
+        label = request.data.get("label", "")
+        if not resource or not resource_id:
+            return Response({"error": "resource and resource_id required"}, status=400)
+        err = self._validate_resource(resource)
+        if err:
+            return err
+        fav, _ = request.user.favorites.get_or_create(
+            resource=resource,
+            resource_id=resource_id,
+            defaults={"label": label},
+        )
+        if not fav.label and label:
+            fav.label = label
+            fav.save(update_fields=["label"])
+        return Response({"id": fav.id, "resource": fav.resource, "resource_id": fav.resource_id, "label": fav.label})
+
+    def delete(self, request):
+        resource = request.data.get("resource")
+        resource_id = request.data.get("resource_id")
+        if not resource or not resource_id:
+            return Response({"error": "resource and resource_id required"}, status=400)
+        err = self._validate_resource(resource)
+        if err:
+            return err
+        request.user.favorites.filter(resource=resource, resource_id=resource_id).delete()
+        return Response(status=204)
