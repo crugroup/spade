@@ -3,6 +3,7 @@ from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group, Permission
+from django.db.models import Case, CharField, OuterRef, Subquery, Value, When
 from rest_framework import generics, permissions, status, views, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -147,8 +148,27 @@ class FavoritesView(views.APIView):
             raise ValueError("resource_id must be an integer") from e
 
     def get(self, request):
-        favorites = request.user.favorites.all().values("id", "resource", "resource_id", "label")
-        return Response(list(favorites))
+        files_code = File.objects.filter(id=OuterRef("resource_id"))
+        processes_code = Process.objects.filter(id=OuterRef("resource_id"))
+        favorites = request.user.favorites.annotate(
+            current_label=Case(
+                When(resource="files", then=Subquery(files_code.values("code")[:1])),
+                When(resource="processes", then=Subquery(processes_code.values("code")[:1])),
+                default=Value(""),
+                output_field=CharField(),
+            )
+        ).values("id", "resource", "resource_id", "current_label")
+        return Response(
+            [
+                {
+                    "id": f["id"],
+                    "resource": f["resource"],
+                    "resource_id": f["resource_id"],
+                    "label": f["current_label"],
+                }
+                for f in favorites
+            ]
+        )
 
     def _check_can_view(self, request, resource, resource_id):
         """Return a 404 if the user can't view the referenced object."""
@@ -175,17 +195,21 @@ class FavoritesView(views.APIView):
 
     def post(self, request):
         resource = request.data.get("resource")
-        raw_label = request.data.get("label")
 
-        # Reject non-string types early to avoid 500s from set/dict slicing
-        if (resource is not None and not isinstance(resource, str)) or (
-            raw_label is not None and not isinstance(raw_label, str)
-        ):
+        # Reject non-string types early to avoid 500s
+        if resource is not None and not isinstance(resource, str):
             return Response(
-                {"detail": "resource and label must be strings"},
+                {"detail": "resource must be a string"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        label = (raw_label or "")[: self.MAX_LABEL_LENGTH]
+        # label is optional — the GET endpoint now resolves the real name
+        label = request.data.get("label", "")
+        if label is not None and not isinstance(label, str):
+            return Response(
+                {"detail": "label must be a string"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        label = (label or "")[: self.MAX_LABEL_LENGTH]
 
         # Validate presence before coercion so missing fields return the right error
         if not resource or request.data.get("resource_id") is None:
@@ -207,10 +231,8 @@ class FavoritesView(views.APIView):
             resource_id=resource_id,
             defaults={"label": label},
         )
-        if not fav.label and label:
-            fav.label = label
-            fav.save(update_fields=["label"])
-        return Response({"id": fav.id, "resource": fav.resource, "resource_id": fav.resource_id, "label": fav.label})
+        # Keep label field in model but it's no longer the primary display name
+        return Response({"id": fav.id, "resource": fav.resource, "resource_id": fav.resource_id, "label": label})
 
     def delete(self, request):
         resource = request.query_params.get("resource")
