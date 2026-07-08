@@ -3,7 +3,7 @@ from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group, Permission
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, views, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -120,7 +120,7 @@ class PermissionsView(generics.ListAPIView):
     pagination_class = None
 
 
-class FavoritesView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class FavoritesView(views.APIView):
     """List, add, and remove user favorites."""
 
     permission_classes = [IsAuthenticated]
@@ -134,15 +134,25 @@ class FavoritesView(generics.ListCreateAPIView, generics.DestroyAPIView):
             )
         return None
 
+    def _coerce_resource_id(self, raw):
+        try:
+            return int(raw)
+        except (TypeError, ValueError) as e:
+            raise ValueError("resource_id must be an integer") from e
+
     def get(self, request):
         favorites = request.user.favorites.all().values("id", "resource", "resource_id", "label")
         return Response(list(favorites))
 
     def post(self, request):
         resource = request.data.get("resource")
-        resource_id = request.data.get("resource_id")
         label = request.data.get("label", "")
-        if not resource or not resource_id:
+        try:
+            resource_id = self._coerce_resource_id(request.data.get("resource_id"))
+        except ValueError as e:
+            return Response({"error": str(e)}, status=400)
+
+        if not resource or resource_id is None:
             return Response({"error": "resource and resource_id required"}, status=400)
         err = self._validate_resource(resource)
         if err:
@@ -158,10 +168,14 @@ class FavoritesView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return Response({"id": fav.id, "resource": fav.resource, "resource_id": fav.resource_id, "label": fav.label})
 
     def delete(self, request):
-        resource = request.data.get("resource")
-        resource_id = request.data.get("resource_id")
-        if not resource or not resource_id:
-            return Response({"error": "resource and resource_id required"}, status=400)
+        resource = request.query_params.get("resource")
+        try:
+            resource_id = self._coerce_resource_id(request.query_params.get("resource_id"))
+        except ValueError as e:
+            return Response({"error": str(e)}, status=400)
+
+        if not resource or resource_id is None:
+            return Response({"error": "resource and resource_id required as query params"}, status=400)
         err = self._validate_resource(resource)
         if err:
             return err
