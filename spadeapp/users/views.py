@@ -9,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
+from spadeapp.files.models import File
+from spadeapp.processes.models import Process
+
 from .models import UserFavorite
 from .serializers import (
     GroupSerializer,
@@ -147,9 +150,39 @@ class FavoritesView(views.APIView):
         favorites = request.user.favorites.all().values("id", "resource", "resource_id", "label")
         return Response(list(favorites))
 
+    def _check_can_view(self, request, resource, resource_id):
+        """Return a 404 if the user can't view the referenced object."""
+        model = {"files": File, "processes": Process}.get(resource)
+        if model is None:
+            return None  # should not happen, validated earlier
+        try:
+            obj = model.objects.get(pk=resource_id)
+        except model.DoesNotExist:
+            return Response(
+                {"detail": "Not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        view_perm = model.get_perm("view")
+        if not request.user.has_perm(view_perm, obj):
+            return Response(
+                {"detail": "Not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return None
+
     def post(self, request):
         resource = request.data.get("resource")
-        label = (request.data.get("label") or "")[: self.MAX_LABEL_LENGTH]
+        raw_label = request.data.get("label")
+
+        # Reject non-string types early to avoid 500s from set/dict slicing
+        if (resource is not None and not isinstance(resource, str)) or (
+            raw_label is not None and not isinstance(raw_label, str)
+        ):
+            return Response(
+                {"detail": "resource and label must be strings"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        label = (raw_label or "")[: self.MAX_LABEL_LENGTH]
 
         # Validate presence before coercion so missing fields return the right error
         if not resource or request.data.get("resource_id") is None:
@@ -162,7 +195,8 @@ class FavoritesView(views.APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        err = self._validate_resource(resource)
+        # Validate resource type + view permission
+        err = self._validate_resource(resource) or self._check_can_view(request, resource, resource_id)
         if err:
             return err
         fav, _ = request.user.favorites.get_or_create(
