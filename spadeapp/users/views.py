@@ -3,7 +3,7 @@ from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group, Permission
-from rest_framework import generics, permissions, views, viewsets
+from rest_framework import generics, permissions, status, views, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -125,16 +125,19 @@ class FavoritesView(views.APIView):
 
     permission_classes = [IsAuthenticated]
     ALLOWED_RESOURCES = {choice[0] for choice in UserFavorite.RESOURCE_CHOICES}
+    MAX_LABEL_LENGTH = 255
 
     def _validate_resource(self, resource):
         if resource not in self.ALLOWED_RESOURCES:
             return Response(
-                {"error": f"Invalid resource. Must be one of: {sorted(self.ALLOWED_RESOURCES)}"},
-                status=400,
+                {"detail": f"Invalid resource. Must be one of: {', '.join(sorted(self.ALLOWED_RESOURCES))}"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         return None
 
     def _coerce_resource_id(self, raw):
+        if raw is None:
+            return None
         try:
             return int(raw)
         except (TypeError, ValueError) as e:
@@ -146,14 +149,19 @@ class FavoritesView(views.APIView):
 
     def post(self, request):
         resource = request.data.get("resource")
-        label = request.data.get("label", "")
+        label = (request.data.get("label") or "")[: self.MAX_LABEL_LENGTH]
+
+        # Validate presence before coercion so missing fields return the right error
+        if not resource or request.data.get("resource_id") is None:
+            return Response(
+                {"detail": "resource and resource_id required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             resource_id = self._coerce_resource_id(request.data.get("resource_id"))
         except ValueError as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not resource or resource_id is None:
-            return Response({"error": "resource and resource_id required"}, status=400)
         err = self._validate_resource(resource)
         if err:
             return err
@@ -169,15 +177,20 @@ class FavoritesView(views.APIView):
 
     def delete(self, request):
         resource = request.query_params.get("resource")
-        try:
-            resource_id = self._coerce_resource_id(request.query_params.get("resource_id"))
-        except ValueError as e:
-            return Response({"error": str(e)}, status=400)
+        raw_id = request.query_params.get("resource_id")
 
-        if not resource or resource_id is None:
-            return Response({"error": "resource and resource_id required as query params"}, status=400)
+        if not resource or raw_id is None:
+            return Response(
+                {"detail": "resource and resource_id required as query params"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            resource_id = self._coerce_resource_id(raw_id)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         err = self._validate_resource(resource)
         if err:
             return err
         request.user.favorites.filter(resource=resource, resource_id=resource_id).delete()
-        return Response(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
