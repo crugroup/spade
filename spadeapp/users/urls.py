@@ -5,6 +5,7 @@ from rest_framework import routers
 from rest_framework_simplejwt import views as jwt_views
 
 from .views import (
+    FavoritesView,
     GroupViewSet,
     ObtainTokenView,
     PermissionsView,
@@ -35,5 +36,6 @@ urlpatterns = [
     path("password/change", PasswordChangeView.as_view(), name="password_change"),
     path("users/me/permissions", UserPermissionsView.as_view(), name="user_permissions"),
     path("permissions", PermissionsView.as_view(), name="permissions"),
+    path("favorites", FavoritesView.as_view(), name="favorites"),
     path("", include(router.urls)),
 ]
