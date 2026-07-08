@@ -154,7 +154,10 @@ class FavoritesView(views.APIView):
         """Return a 404 if the user can't view the referenced object."""
         model = {"files": File, "processes": Process}.get(resource)
         if model is None:
-            return None  # should not happen, validated earlier
+            return Response(
+                {"detail": "Internal server error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         try:
             obj = model.objects.get(pk=resource_id)
         except model.DoesNotExist:
