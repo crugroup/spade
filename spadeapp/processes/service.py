@@ -49,9 +49,11 @@ class ProcessService:
         version_key = f"latest-runs-version:{user_id}"
         try:
             cache.incr(version_key)
-        except ValueError:
-            # Key does not exist yet; initialise it.
-            cache.set(version_key, 1, timeout=86400 * 7)
+        except ValueError, NotImplementedError:
+            # ValueError: key does not exist yet.
+            # NotImplementedError: backend doesn't support atomic incr; fall back.
+            current = cache.get(version_key, 0) or 0
+            cache.set(version_key, int(current) + 1, timeout=86400 * 7)
 
     @staticmethod
     def _get_latest_runs_cache_key(process_ids: list[int], request) -> str | None:
@@ -174,6 +176,7 @@ class ProcessService:
             run.error_message = "Failed to parse user params as JSON"
             run.status = ProcessRun.Statuses.ERROR
             run.save()
+            ProcessService._bump_user_cache_version(user.id)
             return run
 
         try:
