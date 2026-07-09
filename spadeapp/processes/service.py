@@ -39,12 +39,28 @@ class ProcessService:
         )
 
     @staticmethod
+    def _bump_user_cache_version(user_id) -> None:
+        """Increment the per-user cache version counter.
+
+        This effectively invalidates *all* ``latest_runs`` cache entries for the
+        given user regardless of which process-ID combination was cached, since
+        every new version produces a different cache key.
+        """
+        version_key = f"latest-runs-version:{user_id}"
+        try:
+            cache.incr(version_key)
+        except ValueError:
+            # Key does not exist yet; initialise it.
+            cache.set(version_key, 1, timeout=86400 * 7)
+
+    @staticmethod
     def _get_latest_runs_cache_key(process_ids: list[int], request) -> str | None:
         if not process_ids:
             return None
 
         user_id = getattr(getattr(request, "user", None), "id", "anon")
-        return ":".join(["latest-process-runs", str(user_id), ",".join(map(str, sorted(process_ids)))])
+        version = cache.get(f"latest-runs-version:{user_id}", 0)
+        return ":".join(["latest-process-runs", str(user_id), str(version), ",".join(map(str, sorted(process_ids)))])
 
     @staticmethod
     def get_latest_runs_for_processes(processes: list[Process], request) -> dict[int, ProcessRun]:
@@ -190,16 +206,17 @@ class ProcessService:
             else:
                 run.status = sdk_status
             run.save()
-            # Invalidate the latest_runs cache so the frontend sees the new run immediately
-            cache_key = ProcessService._get_latest_runs_cache_key([process.id], None)
-            if cache_key:
-                cache.delete(cache_key)
+            # Invalidate all latest_runs caches for this user so the frontend
+            # sees the new run immediately, regardless of which process-ID
+            # combination was cached.
+            ProcessService._bump_user_cache_version(user.id)
         except Exception as e:
             logger.exception(f"Error running process {process}")
             run.status = ProcessRun.Statuses.ERROR
             run.result = ProcessRun.Results.FAILED
             run.error_message = str(e)
             run.save()
+            ProcessService._bump_user_cache_version(user.id)
 
         return run
 

@@ -74,7 +74,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         request=serializers.ProcessRunParamsSerializer,
         responses={
             200: serializers.ProcessRunSerializer,
-            500: serializers.ProcessRunSerializer,
+            400: serializers.ProcessRunSerializer,
         },
     )
     @decorators.action(detail=True, methods=["post"], permission_classes=[PostRequiresViewPermission])
