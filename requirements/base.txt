@@ -7,10 +7,10 @@ psycopg[binary]==3.3.4  # https://github.com/psycopg/psycopg
 
 # Django
 # ------------------------------------------------------------------------------
-django==6.0.5  # https://www.djangoproject.com/
-django-environ==0.13.0  # https://github.com/joke2k/django-environ
+django==6.0.7  # https://www.djangoproject.com/
+django-environ==0.14.0  # https://github.com/joke2k/django-environ
 django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
-django-allauth==65.17.0  # https://github.com/pennersr/django-allauth
+django-allauth==65.18.0  # https://github.com/pennersr/django-allauth
 
 # Django REST Framework
 djangorestframework==3.17.1  # https://github.com/encode/django-rest-framework
@@ -19,7 +19,7 @@ dj-rest-auth[with_social]==7.2.0  # https://github.com/iMerica/dj-rest-auth
 djangorestframework-simplejwt==5.5.1
 
 # DRF-spectacular for api documentation
-drf-spectacular>=0.29.0  # https://github.com/tfranzel/drf-spectacular
+drf-spectacular>=0.30.0  # https://github.com/tfranzel/drf-spectacular
 
 django-taggit==6.1.0
 django-filter==25.2  # https://github.com/carltongibson/django-filter
@@ -28,5 +28,5 @@ django-filter==25.2  # https://github.com/carltongibson/django-filter
 rules==3.5  # https://github.com/dfunckt/django-rules
 
 spadesdk==0.5.0
-cryptography>=48.0.0  # For encrypting secret variables
-pandera[io, pandas, frictionless]>=0.31.1  # For validating data schemas with frictionless support
+cryptography>=49.0.0  # For encrypting secret variables
+pandera[io, pandas, frictionless]>=0.32.1  # For validating data schemas with frictionless support

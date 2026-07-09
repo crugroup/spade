@@ -153,7 +153,7 @@ class ProcessService:
                 parsed_user_params = user_params
             else:
                 raise TypeError("params must be a JSON string or object")
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             run.result = ProcessRun.Results.FAILED
             run.error_message = "Failed to parse user params as JSON"
             run.status = ProcessRun.Statuses.ERROR
@@ -206,7 +206,7 @@ class ProcessService:
             try:
                 history_provider = import_object(object_key)
                 settings.SPADE_HISTORY_PROVIDERS[object_key] = history_provider
-            except (ImportError, AttributeError):
+            except ImportError, AttributeError:
                 logger.exception(
                     "Failed to import history provider %s for process %s. Falling back to local ProcessRun records.",
                     object_key,
