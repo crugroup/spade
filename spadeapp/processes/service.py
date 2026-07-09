@@ -183,8 +183,17 @@ class ProcessService:
             run.result = result.result.value if result.result else None
             run.output = result.output
             run.error_message = result.error_message
-            run.status = result.status.value
+            # Normalize SDK status: the SDK uses "failed" but the model uses "error"
+            sdk_status = result.status.value
+            if sdk_status == "failed":
+                run.status = ProcessRun.Statuses.ERROR
+            else:
+                run.status = sdk_status
             run.save()
+            # Invalidate the latest_runs cache so the frontend sees the new run immediately
+            cache_key = ProcessService._get_latest_runs_cache_key([process.id], None)
+            if cache_key:
+                cache.delete(cache_key)
         except Exception as e:
             logger.exception(f"Error running process {process}")
             run.status = ProcessRun.Statuses.ERROR
