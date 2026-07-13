@@ -74,7 +74,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         request=serializers.ProcessRunParamsSerializer,
         responses={
             200: serializers.ProcessRunSerializer,
-            500: serializers.ProcessRunSerializer,
+            400: serializers.ProcessRunSerializer,
         },
     )
     @decorators.action(detail=True, methods=["post"], permission_classes=[PostRequiresViewPermission])
@@ -85,7 +85,9 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         )
 
         return Response(
-            status=status.HTTP_200_OK if run.status != "failed" else status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_200_OK
+            if run.status not in ("failed", models.ProcessRun.Statuses.ERROR)
+            else status.HTTP_400_BAD_REQUEST,
             data=serializer.data,
         )
 

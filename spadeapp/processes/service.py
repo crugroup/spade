@@ -39,12 +39,30 @@ class ProcessService:
         )
 
     @staticmethod
+    def _bump_user_cache_version(user_id) -> None:
+        """Increment the per-user cache version counter.
+
+        This effectively invalidates *all* ``latest_runs`` cache entries for the
+        given user regardless of which process-ID combination was cached, since
+        every new version produces a different cache key.
+        """
+        version_key = f"latest-runs-version:{user_id}"
+        try:
+            cache.incr(version_key)
+        except ValueError, NotImplementedError:
+            # ValueError: key does not exist yet.
+            # NotImplementedError: backend doesn't support atomic incr; fall back.
+            current = cache.get(version_key, 0) or 0
+            cache.set(version_key, int(current) + 1, timeout=86400 * 7)
+
+    @staticmethod
     def _get_latest_runs_cache_key(process_ids: list[int], request) -> str | None:
         if not process_ids:
             return None
 
         user_id = getattr(getattr(request, "user", None), "id", "anon")
-        return ":".join(["latest-process-runs", str(user_id), ",".join(map(str, sorted(process_ids)))])
+        version = cache.get(f"latest-runs-version:{user_id}", 0)
+        return ":".join(["latest-process-runs", str(user_id), str(version), ",".join(map(str, sorted(process_ids)))])
 
     @staticmethod
     def get_latest_runs_for_processes(processes: list[Process], request) -> dict[int, ProcessRun]:
@@ -158,6 +176,7 @@ class ProcessService:
             run.error_message = "Failed to parse user params as JSON"
             run.status = ProcessRun.Statuses.ERROR
             run.save()
+            ProcessService._bump_user_cache_version(user.id)
             return run
 
         try:
@@ -183,14 +202,24 @@ class ProcessService:
             run.result = result.result.value if result.result else None
             run.output = result.output
             run.error_message = result.error_message
-            run.status = result.status.value
+            # Normalize SDK status: the SDK uses "failed" but the model uses "error"
+            sdk_status = result.status.value
+            if sdk_status == "failed":
+                run.status = ProcessRun.Statuses.ERROR
+            else:
+                run.status = sdk_status
             run.save()
+            # Invalidate all latest_runs caches for this user so the frontend
+            # sees the new run immediately, regardless of which process-ID
+            # combination was cached.
+            ProcessService._bump_user_cache_version(user.id)
         except Exception as e:
             logger.exception(f"Error running process {process}")
             run.status = ProcessRun.Statuses.ERROR
             run.result = ProcessRun.Results.FAILED
             run.error_message = str(e)
             run.save()
+            ProcessService._bump_user_cache_version(user.id)
 
         return run
 
