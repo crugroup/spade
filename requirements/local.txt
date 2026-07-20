@@ -18,7 +18,7 @@ pytest-sugar==1.1.1  # https://github.com/Frozenball/pytest-sugar
 ruff==0.15.22  # https://github.com/astral-sh/ruff (replaces flake8, isort, pylint)
 coverage==7.15.2  # https://github.com/nedbat/coveragepy
 black==26.5.1  # https://github.com/psf/black
-djlint==1.40.7  # https://github.com/Riverside-Healthcare/djLint
+djlint==1.41.0  # https://github.com/Riverside-Healthcare/djLint
 pre-commit==4.6.0  # https://github.com/pre-commit/pre-commit
 # Django
 # ------------------------------------------------------------------------------
