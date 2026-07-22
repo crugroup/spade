@@ -19,7 +19,7 @@ ruff==0.15.22  # https://github.com/astral-sh/ruff (replaces flake8, isort, pyli
 coverage==7.15.2  # https://github.com/nedbat/coveragepy
 black==26.5.1  # https://github.com/psf/black
 djlint==1.42.1  # https://github.com/Riverside-Healthcare/djLint
-pre-commit==4.6.0  # https://github.com/pre-commit/pre-commit
+pre-commit==4.6.1  # https://github.com/pre-commit/pre-commit
 # Django
 # ------------------------------------------------------------------------------
 factory-boy==3.3.3  # https://github.com/FactoryBoy/factory_boy
