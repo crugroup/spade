@@ -3,7 +3,7 @@ from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group, Permission
-from django.db.models import Case, CharField, OuterRef, Subquery, Value, When
+from django.db.models import Case, CharField, OuterRef, Q, Subquery, Value, When
 from rest_framework import generics, permissions, status, views, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -83,7 +83,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     serializer_class = GroupSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    queryset = Group.objects.all()
+    queryset = Group.objects.all().order_by("name")
     search_fields = ("name",)
     filterset_fields = ("name",)
 
@@ -99,12 +99,10 @@ class UserPermissionsView(generics.ListAPIView):
             return Response(serializer.data)
 
         user = request.user
-        # Get the user's group permissions
-        group_permissions = Permission.objects.filter(group__user=user)
-        # Get the user's user permissions
-        user_permissions = Permission.objects.filter(user=user)
-        # Combine the querysets
-        all_permissions = group_permissions.union(user_permissions)
+        # Combine group and user permissions, deduplicated. A `.union()` here would
+        # break because Permission has a default Meta ordering and UNION does not
+        # allow ORDER BY in its subqueries.
+        all_permissions = Permission.objects.filter(Q(group__user=user) | Q(user=user)).distinct()
 
         serializer = PermissionSerializer(all_permissions, many=True)
         return Response(serializer.data)
