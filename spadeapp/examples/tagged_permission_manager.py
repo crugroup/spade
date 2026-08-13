@@ -9,7 +9,16 @@ def tags_intersect_groups(user, obj):
     """
     Predicate that checks if the user's group's names match
     any of the tag names of the object.
+
+    The rules framework also evaluates this with ``obj=None`` for coarse,
+    object-less checks (e.g. ``DjangoModelPermissions`` calls ``has_perms``
+    without an object). There is no object to compare against in that case, so
+    return True and let the object-aware checks (``AutoPermissionViewSetMixin``
+    and the list filters) enforce the tag restriction.
     """
+    if obj is None:
+        return True
+
     group_names = user.groups.annotate(lower_name=Lower("name")).values("lower_name")
     tag_names = obj.tags.annotate(lower_name=Lower("name")).values("lower_name")
     return group_names.intersection(tag_names).exists()
