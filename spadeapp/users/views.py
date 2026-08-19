@@ -99,10 +99,9 @@ class UserPermissionsView(generics.ListAPIView):
             return Response(serializer.data)
 
         user = request.user
-        # Combine group and user permissions, deduplicated. A `.union()` here would
-        # break because Permission has a default Meta ordering and UNION does not
-        # allow ORDER BY in its subqueries.
-        all_permissions = Permission.objects.filter(Q(group__user=user) | Q(user=user)).distinct()
+        # Permission's default Meta ordering joins to content_type, which breaks
+        # DISTINCT/UNION queries; override with a join-free order_by to avoid it.
+        all_permissions = Permission.objects.filter(Q(group__user=user) | Q(user=user)).order_by("codename").distinct()
 
         serializer = PermissionSerializer(all_permissions, many=True)
         return Response(serializer.data)
