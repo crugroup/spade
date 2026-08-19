@@ -25,8 +25,10 @@ CACHES = {
 
 # EMAIL
 # ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+# https://docs.djangoproject.com/en/dev/ref/settings/#mailers
+MAILERS["default"]["BACKEND"] = env(  # noqa: F405
+    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
 
 # WhiteNoise
 # ------------------------------------------------------------------------------

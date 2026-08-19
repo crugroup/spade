@@ -81,6 +81,7 @@ class FileProcessor(RulesModel):
         ordering = ("-pk",)
         rules_permissions = {
             "view": defer_rule("files.view_fileprocessor"),
+            "list": defer_rule("files.list_fileprocessor"),
             "add": defer_rule("files.add_fileprocessor"),
             "change": defer_rule("files.change_fileprocessor"),
             "delete": defer_rule("files.delete_fileprocessor"),
