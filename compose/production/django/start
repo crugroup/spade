@@ -5,4 +5,8 @@ set -o pipefail
 set -o nounset
 
 
-exec /usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app "$@"
+exec /usr/local/bin/gunicorn config.wsgi \
+  --bind 0.0.0.0:5000 \
+  --chdir=/app \
+  --timeout "${GUNICORN_TIMEOUT:-300}" \
+  "$@"
