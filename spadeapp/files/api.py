@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from ..utils import filters as utils_filters
-from ..utils.permissions import PostRequiresViewPermission
+from ..utils.permissions import PostRequiresViewPermission, filter_visible
 from . import models, serializers, service
 
 
@@ -30,10 +30,7 @@ class FileFormatViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.FileFormat.get_perm("view"), obj),
-            queryset,
-        )
+        viewable_objects = filter_visible(request.user, models.FileFormat.get_perm("view"), queryset)
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -52,10 +49,7 @@ class FileProcessorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.FileProcessor.get_perm("view"), obj),
-            queryset,
-        )
+        viewable_objects = filter_visible(request.user, models.FileProcessor.get_perm("view"), queryset)
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -78,10 +72,7 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.File.get_perm("view"), obj),
-            queryset,
-        )
+        viewable_objects = filter_visible(request.user, models.File.get_perm("view"), queryset)
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
@@ -136,11 +127,17 @@ class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
         "list": "list",
     }
 
+    def get_queryset(self):
+        # An upload is only visible when its file is visible to the user.
+        user = self.request.user
+        visible_files = filter_visible(user, models.File.get_perm("view"), models.File.objects.all())
+        queryset = super().get_queryset().filter(file__in=visible_files)
+        if self.action == "list":
+            # Detail actions keep the upload's own view rule in AutoPermissionViewSetMixin (403, not 404).
+            queryset = filter_visible(user, models.FileUpload.get_perm("view"), queryset)
+        return queryset
+
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.FileUpload.get_perm("view"), obj),
-            queryset,
-        )
-        serializer = self.get_serializer(viewable_objects, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
