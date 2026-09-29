@@ -1,10 +1,12 @@
 import pytest
+import rules
 from django.core.cache import cache
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from spadeapp.processes.models import Executor, Process, ProcessRun
 from spadeapp.users.tests.factories import UserFactory
+from spadeapp.utils.permissions import SpadePermissionManager, permission_manager_cache
 
 EXAMPLE_EXECUTOR = "spadeapp.examples.executor.ExampleExecutor"
 
@@ -33,7 +35,7 @@ def user(db):
 @pytest.fixture
 def process(db):
     executor = Executor.objects.create(name="executor", callable=EXAMPLE_EXECUTOR)
-    return Process.objects.create(code="process", executor=executor)
+    return Process.objects.create(code="process", executor=executor, system_params={"region": "EU"})
 
 
 @pytest.fixture
@@ -87,6 +89,7 @@ class TestLatestRunsCache:
 
         assert miss[0]["latest_run"]["id"] is not None
         assert miss[0]["latest_run"]["user_params"] == '{"a": 1}'
+        assert miss[0]["latest_run"]["system_params"] == {"region": "EU"}
         assert hit == miss
 
     def test_run_invalidates_other_users_cache(self, client_for, user, process):
@@ -98,3 +101,40 @@ class TestLatestRunsCache:
         latest_run = self._latest(other_client, process)[0]["latest_run"]
         assert latest_run is not None
         assert latest_run["id"] == ProcessRun.objects.get(process=process).id
+
+
+@rules.predicate
+def run_not_hidden(user, run):
+    return run is None or run.error_message != "hidden"
+
+
+class HideMarkedRunsPermissionManager(SpadePermissionManager):
+    def __init__(self):
+        super().__init__()
+        self.add_rule("processes.view_processrun", run_not_hidden)
+
+
+class TestLatestRunsRunPermission:
+    @pytest.fixture(autouse=True)
+    def _hide_marked_runs(self, settings):
+        settings.SPADE_PERMISSION_MANAGER = f"{__name__}.HideMarkedRunsPermissionManager"
+        permission_manager_cache.cache.clear()
+        yield
+        permission_manager_cache.cache.clear()
+
+    def test_hidden_latest_run_not_returned(self, client_for, user, process):
+        ProcessRun.objects.create(process=process, user=user, error_message="hidden")
+        client = client_for(user)
+
+        miss = client.get(f"/api/v1/processes/latest_runs?ids={process.id}").json()
+        hit = client.get(f"/api/v1/processes/latest_runs?ids={process.id}").json()
+
+        assert miss == [{"process_id": process.id, "latest_run": None}]
+        assert hit == miss
+
+    def test_visible_latest_run_returned(self, client_for, user, process):
+        run = ProcessRun.objects.create(process=process, user=user, error_message="shown")
+
+        latest = client_for(user).get(f"/api/v1/processes/latest_runs?ids={process.id}").json()
+
+        assert latest[0]["latest_run"]["id"] == run.id
