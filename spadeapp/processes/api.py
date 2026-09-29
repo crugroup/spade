@@ -110,6 +110,15 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
         "list": "list",
     }
 
+    def get_queryset(self):
+        # A run is only visible when its process is visible to the user.
+        queryset = super().get_queryset()
+        view_perm = models.Process.get_perm("view")
+        visible_process_ids = [
+            process.pk for process in models.Process.objects.all() if self.request.user.has_perm(view_perm, process)
+        ]
+        return queryset.filter(process_id__in=visible_process_ids)
+
     def list(self, request, *args, **kwargs):
         process_id = self.request.query_params.get("process", None)
         if not process_id:
@@ -122,6 +131,9 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
                 .get(id=process_id)
             )
         except models.Process.DoesNotExist:
+            return Response([])
+
+        if not request.user.has_perm(models.Process.get_perm("view"), process):
             return Response([])
 
         runs = service.ProcessService.get_runs(process, request, *args, **kwargs)

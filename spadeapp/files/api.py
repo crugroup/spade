@@ -136,6 +136,15 @@ class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
         "list": "list",
     }
 
+    def get_queryset(self):
+        # An upload is only visible when its file is visible to the user.
+        queryset = super().get_queryset()
+        view_perm = models.File.get_perm("view")
+        visible_file_ids = [
+            file.pk for file in models.File.objects.all() if self.request.user.has_perm(view_perm, file)
+        ]
+        return queryset.filter(file_id__in=visible_file_ids)
+
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
         viewable_objects = filter(

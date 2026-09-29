@@ -22,15 +22,16 @@ Two permission managers are exercised, mirroring the shipped example classes:
 """
 
 import pytest
+import rules
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from spadeapp.files.models import File, FileFormat, FileProcessor
-from spadeapp.processes.models import Executor, Process
+from spadeapp.files.models import File, FileFormat, FileProcessor, FileUpload
+from spadeapp.processes.models import Executor, Process, ProcessRun
 from spadeapp.users.tests.factories import UserFactory
-from spadeapp.utils.permissions import permission_manager_cache
+from spadeapp.utils.permissions import SpadePermissionManager, permission_manager_cache
 from spadeapp.variables.models import Variable, VariableSet
 
 TAGGED_MANAGER = "spadeapp.examples.tagged_permission_manager.TaggedPermissionManager"
@@ -349,3 +350,81 @@ class TestTaggedPermissionManager:
         api_client.force_authenticate(user=user)
         resp = api_client.get(f"/api/v1/files/{tagged_data['finance_file'].id}")
         assert resp.status_code == status.HTTP_200_OK
+
+    def _history(self, tagged_data, user):
+        runs = {
+            key: ProcessRun.objects.create(process=tagged_data[f"{key}_process"], user=user)
+            for key in ("sales", "finance")
+        }
+        uploads = {
+            key: FileUpload.objects.create(file=tagged_data[f"{key}_file"], name="u.csv", user=user)
+            for key in ("sales", "finance")
+        }
+        return runs, uploads
+
+    def test_process_runs_follow_process_visibility(self, db, api_client, tagged_data, tagged_manager):
+        user = self._sales_user(db, tagged_data)
+        runs, _ = self._history(tagged_data, user)
+        api_client.force_authenticate(user=user)
+
+        listed = api_client.get("/api/v1/processruns").json()["results"]
+        by_process = api_client.get(f"/api/v1/processruns?process={tagged_data['finance_process'].id}")
+        detail = api_client.get(f"/api/v1/processruns/{runs['finance'].id}")
+
+        assert {run["id"] for run in listed} == {runs["sales"].id}
+        assert by_process.status_code == status.HTTP_200_OK
+        assert by_process.json() == []
+        assert detail.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_file_uploads_follow_file_visibility(self, db, api_client, tagged_data, tagged_manager):
+        user = self._sales_user(db, tagged_data)
+        _, uploads = self._history(tagged_data, user)
+        api_client.force_authenticate(user=user)
+
+        listed = api_client.get("/api/v1/fileuploads").json()
+        detail = api_client.get(f"/api/v1/fileuploads/{uploads['finance'].id}")
+
+        assert {upload["id"] for upload in listed} == {uploads["sales"].id}
+        assert detail.status_code == status.HTTP_404_NOT_FOUND
+
+
+class DenyVariablesPermissionManager(SpadePermissionManager):
+    """Allows everything except the variable and variable set rules."""
+
+    def __init__(self):
+        super().__init__()
+        for model in ("variable", "variableset"):
+            for action in ("add", "view", "list", "change", "delete"):
+                self.add_rule(f"variables.{action}_{model}", rules.always_deny)
+
+
+class TestVariablesUsePermissionManager:
+    @pytest.fixture
+    def deny_variables_manager(self, settings):
+        settings.SPADE_PERMISSION_MANAGER = f"{__name__}.DenyVariablesPermissionManager"
+        permission_manager_cache.cache.clear()
+
+    @pytest.mark.parametrize("base", ["/api/v1/variables", "/api/v1/variable-sets"])
+    def test_denied_by_manager(self, api_client, normal_user, data, deny_variables_manager, base):
+        detail_id = data["variable"].id if base.endswith("variables") else data["variable_set"].id
+        api_client.force_authenticate(user=normal_user)
+
+        responses = {
+            "list": api_client.get(base),
+            "detail": api_client.get(f"{base}/{detail_id}"),
+            "create": api_client.post(base, {"name": "new", "value": "v"}, format="json"),
+            "update": api_client.patch(f"{base}/{detail_id}", {"description": "changed"}, format="json"),
+            "delete": api_client.delete(f"{base}/{detail_id}"),
+        }
+
+        for action, resp in responses.items():
+            assert resp.status_code == status.HTTP_403_FORBIDDEN, f"{action}: {resp.status_code}"
+        assert Variable.objects.filter(pk=data["variable"].pk).exists()
+        assert VariableSet.objects.filter(pk=data["variable_set"].pk).exists()
+
+    def test_superuser_still_allowed(self, api_client, admin_user, data, deny_variables_manager):
+        api_client.force_authenticate(user=admin_user)
+
+        resp = api_client.post("/api/v1/variables", {"name": "new", "value": "v"}, format="json")
+
+        assert resp.status_code == status.HTTP_201_CREATED, resp.content[:300]

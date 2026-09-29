@@ -2,6 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
+from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from .models import Variable, VariableSet
 from .serializers import (
@@ -10,17 +11,22 @@ from .serializers import (
 )
 
 
-class VariableViewSet(viewsets.ModelViewSet):
+class VariableViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for managing variables."""
 
     queryset = Variable.objects.all()
     serializer_class = VariableSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["name", "is_secret"]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created_at", "updated_at"]
     ordering = ["name"]
+
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }
 
     def update(self, request, *args, **kwargs):
         """Override update to prevent modification of is_secret field after creation."""
@@ -49,13 +55,18 @@ class VariableViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class VariableSetViewSet(viewsets.ModelViewSet):
+class VariableSetViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for managing variable sets."""
 
     queryset = VariableSet.objects.prefetch_related("variables").all()
     serializer_class = VariableSetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissions]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created_at", "updated_at"]
     ordering = ["name"]
+
+    permission_type_map = {
+        **AutoPermissionViewSetMixin.permission_type_map,
+        "list": "list",
+    }

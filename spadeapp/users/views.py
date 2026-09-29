@@ -1,4 +1,5 @@
 from allauth.account import app_settings as allauth_account_settings
+from allauth.account.adapter import get_adapter
 from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -19,6 +20,7 @@ from .serializers import (
     PermissionSerializer,
     RegisterUserSerializer,
     TokenSerializer,
+    UserProfileSerializer,
     UserSerializer,
 )
 
@@ -31,6 +33,11 @@ class RegisterUserView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AnonRateThrottle]
     serializer_class = RegisterUserSerializer
+
+    def create(self, request, *args, **kwargs):
+        if not get_adapter(request).is_open_for_signup(request):
+            return Response({"detail": "Registration is closed."}, status=status.HTTP_403_FORBIDDEN)
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.validated_data["password"] = make_password(serializer.validated_data["password"])
@@ -50,7 +57,7 @@ class RegisterUserView(generics.CreateAPIView):
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """Get and update user profile"""
 
-    serializer_class = UserSerializer
+    serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     throttle_classes = [UserRateThrottle]
 
