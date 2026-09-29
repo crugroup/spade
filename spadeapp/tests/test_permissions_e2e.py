@@ -25,6 +25,8 @@ import pytest
 import rules
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -428,3 +430,122 @@ class TestVariablesUsePermissionManager:
         resp = api_client.post("/api/v1/variables", {"name": "new", "value": "v"}, format="json")
 
         assert resp.status_code == status.HTTP_201_CREATED, resp.content[:300]
+
+
+@rules.predicate
+def not_marked_hidden(user, obj):
+    """Hides objects whose ``name`` or ``error_message`` is ``"hidden"``."""
+    if obj is None:
+        return True
+    return "hidden" not in (getattr(obj, "name", None), getattr(obj, "error_message", None))
+
+
+class HideMarkedObjectsPermissionManager(SpadePermissionManager):
+    """Allows listing everything but hides individual marked runs, uploads and variables."""
+
+    def __init__(self):
+        super().__init__()
+        for name in (
+            "processes.view_processrun",
+            "files.view_fileupload",
+            "variables.view_variable",
+            "variables.view_variableset",
+        ):
+            self.add_rule(name, not_marked_hidden)
+
+
+class TestListsApplyObjectViewRule:
+    @pytest.fixture
+    def hide_marked_manager(self, settings):
+        settings.SPADE_PERMISSION_MANAGER = f"{__name__}.HideMarkedObjectsPermissionManager"
+        permission_manager_cache.cache.clear()
+
+    @pytest.fixture
+    def marked(self, data, normal_user):
+        return {
+            "runs": [
+                ProcessRun.objects.create(process=data["process"], user=normal_user, error_message=message)
+                for message in ("shown", "hidden")
+            ],
+            "uploads": [
+                FileUpload.objects.create(file=data["file"], name=name, user=normal_user)
+                for name in ("shown", "hidden")
+            ],
+            "variable": Variable.objects.create(name="hidden", value="v"),
+            "variable_set": VariableSet.objects.create(name="hidden"),
+        }
+
+    def test_process_runs_list(self, api_client, normal_user, marked, hide_marked_manager):
+        api_client.force_authenticate(user=normal_user)
+
+        listed = api_client.get("/api/v1/processruns").json()["results"]
+        detail = api_client.get(f"/api/v1/processruns/{marked['runs'][1].id}")
+
+        assert [run["error_message"] for run in listed] == ["shown"]
+        assert detail.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_file_uploads_list(self, api_client, normal_user, marked, hide_marked_manager):
+        api_client.force_authenticate(user=normal_user)
+
+        listed = api_client.get("/api/v1/fileuploads").json()
+
+        assert [upload["name"] for upload in listed] == ["shown"]
+
+    @pytest.mark.parametrize("base", ["/api/v1/variables", "/api/v1/variable-sets"])
+    def test_variables_list(self, api_client, normal_user, marked, hide_marked_manager, base):
+        api_client.force_authenticate(user=normal_user)
+
+        names = {item["name"] for item in api_client.get(base).json()["results"]}
+
+        assert "hidden" not in names
+        assert names  # the fixture's unmarked variable / set is still listed
+
+
+class TestTaggedListQueryCount:
+    """History and list endpoints must not issue per-object permission queries."""
+
+    @pytest.fixture
+    def tagged_manager(self, settings):
+        settings.SPADE_PERMISSION_MANAGER = TAGGED_MANAGER
+        permission_manager_cache.cache.clear()
+
+    def _add_objects(self, tagged_data, user, start, count):
+        executor = tagged_data["sales_process"].executor
+        file = tagged_data["sales_file"]
+        for i in range(start, start + count):
+            for tag in ("Sales", "Finance"):
+                process = Process.objects.create(code=f"{tag}-process-{i}", executor=executor)
+                process.tags.add(tag)
+                ProcessRun.objects.create(process=process, user=user)
+                other_file = File.objects.create(code=f"{tag}-file-{i}", format=file.format, processor=file.processor)
+                other_file.tags.add(tag)
+                FileUpload.objects.create(file=other_file, name="u.csv", user=user)
+
+    def _sales_user(self, tagged_data):
+        user = UserFactory()
+        user.is_superuser = False
+        user.is_staff = False
+        user.save()
+        user.groups.add(tagged_data["sales_group"])
+        return user
+
+    def _count_queries(self, api_client, url):
+        with CaptureQueriesContext(connection) as ctx:
+            resp = api_client.get(url)
+        assert resp.status_code == status.HTTP_200_OK, resp.content[:300]
+        return len(ctx.captured_queries)
+
+    @pytest.mark.parametrize(
+        "url", ["/api/v1/processruns", "/api/v1/fileuploads", "/api/v1/processes", "/api/v1/files"]
+    )
+    def test_query_count_independent_of_object_count(self, db, api_client, tagged_data, tagged_manager, url):
+        user = self._sales_user(tagged_data)
+        api_client.force_authenticate(user=user)
+
+        self._add_objects(tagged_data, user, 0, 1)
+        api_client.get(url)  # warm up per-process caches (e.g. ContentType) so only the view is measured
+        few = self._count_queries(api_client, url)
+        self._add_objects(tagged_data, user, 1, 5)
+        many = self._count_queries(api_client, url)
+
+        assert many == few, f"{url}: {few} queries with few objects, {many} with many"

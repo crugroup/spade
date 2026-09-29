@@ -4,6 +4,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
+from ..utils.permissions import filter_visible
 from .models import Variable, VariableSet
 from .serializers import (
     VariableSerializer,
@@ -27,6 +28,12 @@ class VariableViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         **AutoPermissionViewSetMixin.permission_type_map,
         "list": "list",
     }
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == "list":
+            queryset = filter_visible(self.request.user, Variable.get_perm("view"), queryset)
+        return queryset
 
     def update(self, request, *args, **kwargs):
         """Override update to prevent modification of is_secret field after creation."""
@@ -70,3 +77,9 @@ class VariableSetViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
         **AutoPermissionViewSetMixin.permission_type_map,
         "list": "list",
     }
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == "list":
+            queryset = filter_visible(self.request.user, VariableSet.get_perm("view"), queryset)
+        return queryset

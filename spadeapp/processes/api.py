@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rules.contrib.rest_framework import AutoPermissionViewSetMixin
 
 from ..utils import filters as utils_filters
-from ..utils.permissions import PostRequiresViewPermission
+from ..utils.permissions import PostRequiresViewPermission, filter_visible
 from . import models, serializers, service
 
 
@@ -33,7 +33,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
+        viewable_objects = filter_visible(request.user, models.Process.get_perm("view"), queryset)
         serializer = self.get_serializer(
             viewable_objects,
             many=True,
@@ -55,7 +55,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
             requested_ids = {int(value) for value in ids_param.split(",") if value.strip().isdigit()}
             queryset = queryset.filter(id__in=requested_ids)
 
-        viewable_objects = [obj for obj in queryset if request.user.has_perm(models.Process.get_perm("view"), obj)]
+        viewable_objects = list(filter_visible(request.user, models.Process.get_perm("view"), queryset))
         latest_runs_by_process_id = service.ProcessService.get_latest_runs_for_processes(viewable_objects, request)
         payload = [
             {
@@ -112,12 +112,13 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
 
     def get_queryset(self):
         # A run is only visible when its process is visible to the user.
-        queryset = super().get_queryset()
-        view_perm = models.Process.get_perm("view")
-        visible_process_ids = [
-            process.pk for process in models.Process.objects.all() if self.request.user.has_perm(view_perm, process)
-        ]
-        return queryset.filter(process_id__in=visible_process_ids)
+        user = self.request.user
+        visible_processes = filter_visible(user, models.Process.get_perm("view"), models.Process.objects.all())
+        queryset = super().get_queryset().filter(process__in=visible_processes)
+        if self.action == "list":
+            # Detail actions keep the run's own view rule in AutoPermissionViewSetMixin (403, not 404).
+            queryset = filter_visible(user, models.ProcessRun.get_perm("view"), queryset)
+        return queryset
 
     def list(self, request, *args, **kwargs):
         process_id = self.request.query_params.get("process", None)
@@ -161,9 +162,6 @@ class ExecutorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-        viewable_objects = filter(
-            lambda obj: request.user.has_perm(models.Executor.get_perm("view"), obj),
-            queryset,
-        )
+        viewable_objects = filter_visible(request.user, models.Executor.get_perm("view"), queryset)
         serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)

@@ -1,8 +1,11 @@
 from unittest.mock import Mock, call
 
 import pytest
+import rules
 
+from spadeapp.users.tests.factories import UserFactory
 from spadeapp.utils.permissions import SpadePermissionManager
+from spadeapp.variables.models import Variable
 
 
 @pytest.fixture
@@ -75,3 +78,48 @@ def test_test_rule_with_argument(permission_manager):
     result = permission_manager.test_rule("rule_with_arg", mock_arg)
     mock_rule_with_arg.assert_has_calls([call.test(mock_arg)])
     assert result, "test_rule should return True for 'rule_with_arg' when passed mock_arg."
+
+
+class TestFilterVisible:
+    @pytest.fixture
+    def variables(self, db):
+        return [Variable.objects.create(name=name, value="v") for name in ("keep", "hidden")]
+
+    @pytest.fixture
+    def active_user(self, db):
+        user = UserFactory()
+        # Explicitly demoted so ACCOUNT_FIRST_USER_ADMIN cannot promote it.
+        user.is_superuser = False
+        user.save()
+        return user
+
+    def test_inactive_user_sees_nothing(self, permission_manager, variables, active_user):
+        active_user.is_active = False
+        assert (
+            list(permission_manager.filter_visible("variables.view_variable", active_user, Variable.objects.all()))
+            == []
+        )
+
+    def test_superuser_sees_everything_despite_deny(self, permission_manager, variables):
+        permission_manager.add_rule("variables.view_variable", rules.always_deny)
+        superuser = UserFactory(is_superuser=True)
+        assert permission_manager.filter_visible(
+            "variables.view_variable", superuser, Variable.objects.all()
+        ).count() == len(variables)
+
+    def test_allow_all_rule_needs_no_queries(
+        self, permission_manager, variables, active_user, django_assert_num_queries
+    ):
+        queryset = Variable.objects.all()
+        with django_assert_num_queries(0):
+            result = permission_manager.filter_visible("variables.view_variable", active_user, queryset)
+        assert result is queryset
+
+    def test_deny_all_rule(self, permission_manager, variables, active_user):
+        permission_manager.add_rule("variables.view_variable", rules.always_deny)
+        assert not permission_manager.filter_visible("variables.view_variable", active_user, Variable.objects.all())
+
+    def test_custom_rule_tested_per_object(self, permission_manager, variables, active_user):
+        permission_manager.add_rule("variables.view_variable", rules.predicate(lambda user, obj: obj.name != "hidden"))
+        visible = permission_manager.filter_visible("variables.view_variable", active_user, Variable.objects.all())
+        assert [variable.name for variable in visible] == ["keep"]
