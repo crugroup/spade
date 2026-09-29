@@ -81,7 +81,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     def run(self, request, pk):
         process = self.get_object()
         serializer = serializers.ProcessRunSerializer(
-            run := service.ProcessService.run_process(process, request.user, request.data["params"])
+            run := service.ProcessService.run_process(process, request.user, request.data.get("params"))
         )
 
         return Response(
@@ -124,6 +124,11 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
         process_id = self.request.query_params.get("process", None)
         if not process_id:
             return super().list(request, *args, **kwargs)
+
+        try:
+            process_id = int(process_id)
+        except ValueError:
+            return Response({"process": ["A valid integer is required."]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             process = (

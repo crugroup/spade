@@ -1,4 +1,5 @@
 import base64
+import logging
 
 from cryptography.fernet import Fernet
 from django.conf import settings
@@ -7,6 +8,8 @@ from django.db import models
 from rules.contrib.models import RulesModel
 
 from ..utils.permissions import defer_rule
+
+logger = logging.getLogger(__name__)
 
 
 class Variable(RulesModel):
@@ -58,7 +61,8 @@ class Variable(RulesModel):
             fernet = Fernet(self._get_encryption_key())
             return fernet.decrypt(self.value.encode()).decode()
         except Exception:
-            # If decryption fails, return the original value
+            # If decryption fails (e.g. SECRET_KEY was rotated), return the original value
+            logger.exception("Failed to decrypt secret variable %s", self.name)
             return self.value
 
     def clean(self):

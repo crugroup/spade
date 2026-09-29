@@ -41,7 +41,7 @@ class ProcessRunAdminForm(forms.ModelForm):
 class ProcessRunAdmin(admin.ModelAdmin):
     form = ProcessRunAdminForm
     list_display = ["process", "result", "status", "user", "created_at"]
-    search_fields = ["process", "user"]
+    search_fields = ["process__code", "user__email"]
     list_filter = ["result", "status", "created_at"]
     readonly_fields = ["created_at"]
 

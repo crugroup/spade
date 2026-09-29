@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.conf import settings
@@ -9,6 +8,7 @@ from spadesdk.user import User as SDKUser
 
 from ..processes.service import ProcessService
 from ..utils.imports import import_object
+from ..utils.params import parse_user_params
 from ..variables.service import VariableService
 from .models import File, FileUpload
 
@@ -38,10 +38,10 @@ class FileService:
         )
 
         try:
-            parsed_user_params = json.loads(user_params) if user_params else {}
-        except json.JSONDecodeError:
+            parsed_user_params = parse_user_params(user_params)
+        except ValueError as e:
             upload.result = FileUpload.Results.FAILED
-            upload.error_message = "Failed to parse user params as JSON"
+            upload.error_message = str(e)
             upload.save()
             return upload
 

@@ -42,16 +42,12 @@ class RegisterUserView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.validated_data["password"] = make_password(serializer.validated_data["password"])
         user = serializer.save()
-        token = serializer.get_token(user)
-        serializer.validated_data["token"] = token
-        result = super().perform_create(serializer)
         complete_signup(
             self.request._request,
             user,
             allauth_account_settings.EMAIL_VERIFICATION,
             None,
         )
-        return result
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
