@@ -1,4 +1,3 @@
-import json
 import logging
 import typing
 
@@ -13,11 +12,14 @@ from spadesdk.history_provider import HistoryProvider
 from spadesdk.user import User as SDKUser
 
 from ..utils.imports import import_object
+from ..utils.params import parse_user_params
 from ..variables.service import VariableService
 from .models import Process, ProcessRun
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+LATEST_RUNS_VERSION_KEY = "latest-runs-version"
 
 
 class ProcessService:
@@ -39,21 +41,20 @@ class ProcessService:
         )
 
     @staticmethod
-    def _bump_user_cache_version(user_id) -> None:
-        """Increment the per-user cache version counter.
+    def _bump_latest_runs_cache_version() -> None:
+        """Increment the global ``latest_runs`` cache version counter.
 
-        This effectively invalidates *all* ``latest_runs`` cache entries for the
-        given user regardless of which process-ID combination was cached, since
-        every new version produces a different cache key.
+        A new run changes the latest run seen by every user who can view the
+        process, so this invalidates *all* ``latest_runs`` cache entries for all
+        users, regardless of which process-ID combination was cached.
         """
-        version_key = f"latest-runs-version:{user_id}"
         try:
-            cache.incr(version_key)
+            cache.incr(LATEST_RUNS_VERSION_KEY)
         except ValueError, NotImplementedError:
             # ValueError: key does not exist yet.
             # NotImplementedError: backend doesn't support atomic incr; fall back.
-            current = cache.get(version_key, 0) or 0
-            cache.set(version_key, int(current) + 1, timeout=86400 * 7)
+            current = cache.get(LATEST_RUNS_VERSION_KEY, 0) or 0
+            cache.set(LATEST_RUNS_VERSION_KEY, int(current) + 1, timeout=86400 * 7)
 
     @staticmethod
     def _get_latest_runs_cache_key(process_ids: list[int], request) -> str | None:
@@ -61,7 +62,7 @@ class ProcessService:
             return None
 
         user_id = getattr(getattr(request, "user", None), "id", "anon")
-        version = cache.get(f"latest-runs-version:{user_id}", 0)
+        version = cache.get(LATEST_RUNS_VERSION_KEY, 0)
         return ":".join(["latest-process-runs", str(user_id), str(version), ",".join(map(str, sorted(process_ids)))])
 
     @staticmethod
@@ -76,14 +77,18 @@ class ProcessService:
             if cached_payload is not None:
                 user_ids = {run["user_id"] for run in cached_payload.values() if run.get("user_id")}
                 users_by_id = User.objects.in_bulk(user_ids)
+                processes_by_id = {process.id: process for process in processes}
                 return {
                     int(process_id): ProcessRun(
-                        process=next(process for process in processes if process.id == int(process_id)),
+                        id=run.get("id"),
+                        process=processes_by_id[int(process_id)],
                         status=run["status"],
                         result=run["result"],
                         output=run["output"],
                         error_message=run["error_message"],
                         created_at=run["created_at"],
+                        system_params=run.get("system_params"),
+                        user_params=run.get("user_params"),
                         user=users_by_id.get(run.get("user_id")),
                     )
                     for process_id, run in cached_payload.items()
@@ -128,11 +133,14 @@ class ProcessService:
                 cache_key,
                 {
                     process_id: {
+                        "id": run.id,
                         "status": run.status,
                         "result": run.result,
                         "output": run.output,
                         "error_message": run.error_message,
                         "created_at": run.created_at,
+                        "system_params": run.system_params,
+                        "user_params": run.user_params,
                         "user_id": getattr(run, "user_id", None),
                     }
                     for process_id, run in latest_runs_by_process_id.items()
@@ -163,20 +171,13 @@ class ProcessService:
         )
 
         try:
-            if isinstance(user_params, str):
-                parsed_user_params = json.loads(user_params) if user_params else {}
-            elif user_params is None:
-                parsed_user_params = {}
-            elif isinstance(user_params, dict):
-                parsed_user_params = user_params
-            else:
-                raise TypeError("params must be a JSON string or object")
-        except json.JSONDecodeError, TypeError:
+            parsed_user_params = parse_user_params(user_params)
+        except ValueError as e:
             run.result = ProcessRun.Results.FAILED
-            run.error_message = "Failed to parse user params as JSON"
+            run.error_message = str(e)
             run.status = ProcessRun.Statuses.ERROR
             run.save()
-            ProcessService._bump_user_cache_version(user.id)
+            ProcessService._bump_latest_runs_cache_version()
             return run
 
         try:
@@ -209,17 +210,16 @@ class ProcessService:
             else:
                 run.status = sdk_status
             run.save()
-            # Invalidate all latest_runs caches for this user so the frontend
-            # sees the new run immediately, regardless of which process-ID
-            # combination was cached.
-            ProcessService._bump_user_cache_version(user.id)
+            # Invalidate all latest_runs caches so every user sees the new run
+            # immediately, regardless of which process-ID combination was cached.
+            ProcessService._bump_latest_runs_cache_version()
         except Exception as e:
             logger.exception(f"Error running process {process}")
             run.status = ProcessRun.Statuses.ERROR
             run.result = ProcessRun.Results.FAILED
             run.error_message = str(e)
             run.save()
-            ProcessService._bump_user_cache_version(user.id)
+            ProcessService._bump_latest_runs_cache_version()
 
         return run
 

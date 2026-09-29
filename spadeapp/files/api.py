@@ -92,11 +92,17 @@ class FileViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     def upload(self, request, pk, format=None):
         file = self.get_object()
 
+        uploaded_file = request.data.get("file")
+        # The schema documents ``filename`` as a query parameter; multipart forms send it as a field.
+        filename = request.data.get("filename") or request.query_params.get("filename")
+        if uploaded_file is None or not filename:
+            return Response({"detail": "file and filename are required"}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = serializers.FileUploadSerializer(
             run := service.FileService.process_file(
                 file=file,
-                data=request.data["file"].read(),
-                filename=request.data["filename"],
+                data=uploaded_file.read(),
+                filename=filename,
                 user=request.user,
                 user_params=request.data.get("params"),
             )

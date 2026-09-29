@@ -57,11 +57,15 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
 
         viewable_objects = list(filter_visible(request.user, models.Process.get_perm("view"), queryset))
         latest_runs_by_process_id = service.ProcessService.get_latest_runs_for_processes(viewable_objects, request)
+        # Apply the run's own view rule on both the cached and the freshly queried path.
+        # A hidden latest run is reported as no run rather than falling back to an older one.
+        view_run_perm = models.ProcessRun.get_perm("view")
         payload = [
             {
                 "process_id": process.id,
-                "latest_run": latest_runs_by_process_id.get(process.id)
-                if process.id in latest_runs_by_process_id
+                "latest_run": latest_run
+                if (latest_run := latest_runs_by_process_id.get(process.id)) is not None
+                and request.user.has_perm(view_run_perm, latest_run)
                 else None,
             }
             for process in viewable_objects
@@ -81,7 +85,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     def run(self, request, pk):
         process = self.get_object()
         serializer = serializers.ProcessRunSerializer(
-            run := service.ProcessService.run_process(process, request.user, request.data["params"])
+            run := service.ProcessService.run_process(process, request.user, request.data.get("params"))
         )
 
         return Response(
@@ -124,6 +128,11 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
         process_id = self.request.query_params.get("process", None)
         if not process_id:
             return super().list(request, *args, **kwargs)
+
+        try:
+            process_id = int(process_id)
+        except ValueError:
+            return Response({"process": ["A valid integer is required."]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             process = (
