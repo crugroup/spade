@@ -1,6 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
 from spadeapp.files.models import File, FileFormat, FileProcessor, FileUpload
@@ -76,3 +77,15 @@ def test_process_file_accepts_object_params(user, file):
 
     assert upload.result == FileUpload.Results.SUCCESS
     assert upload.error_message is None
+
+
+def test_upload_history_is_paginated(client, user, file, monkeypatch):
+    monkeypatch.setattr(PageNumberPagination, "page_size", 2)
+    uploads = [FileUpload.objects.create(file=file, user=user, name=f"u{i}.csv") for i in range(3)]
+
+    first = client.get(f"/api/v1/fileuploads?file={file.id}").json()
+    second = client.get(first["next"]).json()
+
+    assert first["count"] == len(uploads)
+    assert [upload["id"] for upload in first["results"]] == [uploads[2].id, uploads[1].id]
+    assert [upload["id"] for upload in second["results"]] == [uploads[0].id]

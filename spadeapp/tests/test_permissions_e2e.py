@@ -375,7 +375,8 @@ class TestTaggedPermissionManager:
 
         assert {run["id"] for run in listed} == {runs["sales"].id}
         assert by_process.status_code == status.HTTP_200_OK
-        assert by_process.json() == []
+        assert by_process.json()["count"] == 0
+        assert by_process.json()["results"] == []
         assert detail.status_code == status.HTTP_404_NOT_FOUND
 
     def test_file_uploads_follow_file_visibility(self, db, api_client, tagged_data, tagged_manager):
@@ -383,7 +384,7 @@ class TestTaggedPermissionManager:
         _, uploads = self._history(tagged_data, user)
         api_client.force_authenticate(user=user)
 
-        listed = api_client.get("/api/v1/fileuploads").json()
+        listed = api_client.get("/api/v1/fileuploads").json()["results"]
         detail = api_client.get(f"/api/v1/fileuploads/{uploads['finance'].id}")
 
         assert {upload["id"] for upload in listed} == {uploads["sales"].id}
@@ -487,7 +488,7 @@ class TestListsApplyObjectViewRule:
     def test_file_uploads_list(self, api_client, normal_user, marked, hide_marked_manager):
         api_client.force_authenticate(user=normal_user)
 
-        listed = api_client.get("/api/v1/fileuploads").json()
+        listed = api_client.get("/api/v1/fileuploads").json()["results"]
 
         assert [upload["name"] for upload in listed] == ["shown"]
 
