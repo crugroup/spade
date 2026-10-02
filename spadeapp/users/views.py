@@ -66,7 +66,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     serializer_class = UserSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    queryset = User.objects.all()
+    queryset = User.objects.prefetch_related("groups", "user_permissions")
     search_fields = ("first_name", "last_name", "email")
     filterset_fields = ("first_name", "last_name", "email")
 
@@ -86,7 +86,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     serializer_class = GroupSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    queryset = Group.objects.all().order_by("name")
+    queryset = Group.objects.prefetch_related("permissions").order_by("name")
     search_fields = ("name",)
     filterset_fields = ("name",)
 

@@ -1,3 +1,4 @@
+from django.db.models import QuerySet
 from django_filters import rest_framework as filters_drf
 from drf_spectacular.utils import extend_schema
 from rest_framework import decorators, permissions, status, viewsets
@@ -34,14 +35,7 @@ class ProcessViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
         viewable_objects = filter_visible(request.user, models.Process.get_perm("view"), queryset)
-        serializer = self.get_serializer(
-            viewable_objects,
-            many=True,
-            context={
-                **self.get_serializer_context(),
-                "include_latest_run": False,
-            },
-        )
+        serializer = self.get_serializer(viewable_objects, many=True)
         return Response(serializer.data)
 
     @extend_schema(
@@ -141,20 +135,23 @@ class ProcessRunViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
                 .get(id=process_id)
             )
         except models.Process.DoesNotExist:
-            return Response([])
+            process = None
 
-        if not request.user.has_perm(models.Process.get_perm("view"), process):
-            return Response([])
+        if process is None or not request.user.has_perm(models.Process.get_perm("view"), process):
+            return self.get_paginated_response(self.paginate_queryset([]))
 
         runs = service.ProcessService.get_runs(process, request, *args, **kwargs)
-        runs = filter(
-            lambda obj: request.user.has_perm(models.ProcessRun.get_perm("view"), obj),
-            runs,
-        )
+        if isinstance(runs, QuerySet):
+            # Local history: filter in the database, which also applies the visibility rules
+            # and the remaining query filters (status, user, ...).
+            runs = self.filter_queryset(self.get_queryset()).filter(process=process)
+        else:
+            view_run_perm = models.ProcessRun.get_perm("view")
+            runs = [run for run in runs if request.user.has_perm(view_run_perm, run)]
 
-        serializer = serializers.ProcessRunSerializer(runs, many=True)
-
-        return Response(serializer.data)
+        page = self.paginate_queryset(runs)
+        serializer = serializers.ProcessRunSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class ExecutorViewSet(AutoPermissionViewSetMixin, viewsets.ModelViewSet):
