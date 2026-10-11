@@ -245,15 +245,14 @@ class ProcessService:
         else:
             history_provider = settings.SPADE_HISTORY_PROVIDERS[object_key]
 
-        # Get variables for the process and merge with system params
-        variables = VariableService.get_variables_for_process_instance(process)
-        enhanced_system_params = VariableService.merge_variables(process.system_params or {}, variables)
-
         cache_timeout = getattr(settings, "SPADE_HISTORY_PROVIDER_CACHE_TIMEOUT", 60)
         cache_key = ProcessService._get_history_cache_key(process, request)
         cached_runs = cache.get(cache_key) if cache_key and cache_timeout > 0 else None
 
         if cached_runs is None:
+            # Only needed to call the provider, so skip the variable queries and decryption on a cache hit.
+            variables = VariableService.get_variables_for_process_instance(process)
+            enhanced_system_params = VariableService.merge_variables(process.system_params or {}, variables)
             provider_results = history_provider.get_runs(
                 SDKProcess(
                     code=process.code,

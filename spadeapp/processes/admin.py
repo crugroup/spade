@@ -43,6 +43,7 @@ class ProcessRunAdmin(admin.ModelAdmin):
     list_display = ["process", "result", "status", "user", "created_at"]
     search_fields = ["process__code", "user__email"]
     list_filter = ["result", "status", "created_at"]
+    raw_id_fields = ["process", "user"]
     readonly_fields = ["created_at"]
 
 

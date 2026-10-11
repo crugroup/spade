@@ -157,6 +157,8 @@ class FileUpload(RulesModel):
 
     class Meta:
         ordering = ("-pk",)
+        # Upload history is read per file, newest first.
+        indexes = [models.Index(fields=["file", "-id"], name="fileupload_file_id_desc")]
         rules_permissions = {
             "add": defer_rule("files.add_fileupload"),
             "view": defer_rule("files.view_fileupload"),

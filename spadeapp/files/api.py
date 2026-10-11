@@ -142,8 +142,3 @@ class FileUploadViewSet(AutoPermissionViewSetMixin, viewsets.ReadOnlyModelViewSe
             # Detail actions keep the upload's own view rule in AutoPermissionViewSetMixin (403, not 404).
             queryset = filter_visible(user, models.FileUpload.get_perm("view"), queryset)
         return queryset
-
-    def list(self, request, *args, **kwargs) -> Response:
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
