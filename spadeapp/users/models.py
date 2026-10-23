@@ -26,7 +26,8 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         # If no users exist, the first user is automatically a superuser
-        if settings.ACCOUNT_FIRST_USER_ADMIN and not User.objects.exists():
+        # Only new users can be the first; this avoids an extra query on every save (e.g. last_login).
+        if self._state.adding and settings.ACCOUNT_FIRST_USER_ADMIN and not User.objects.exists():
             self.is_superuser = True
             self.is_staff = True
         super().save(*args, **kwargs)
