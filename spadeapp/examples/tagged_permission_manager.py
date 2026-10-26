@@ -41,3 +41,14 @@ class TaggedPermissionManager(SpadePermissionManager):
         self.add_rule("files.add_fileupload", tags_intersect_groups)
         self.add_rule("processes.view_process", tags_intersect_groups)
         self.add_rule("processes.add_processrun", tags_intersect_groups)
+
+    def filter_by_rule(self, rule, user, queryset):
+        """Express the tag/group intersection as a single database filter."""
+        if rule is not tags_intersect_groups:
+            return super().filter_by_rule(rule, user, queryset)
+
+        group_names = user.groups.annotate(lower_name=Lower("name")).values("lower_name")
+        matching = (
+            queryset.model.objects.alias(lower_tag=Lower("tags__name")).filter(lower_tag__in=group_names).values("pk")
+        )
+        return queryset.filter(pk__in=matching)

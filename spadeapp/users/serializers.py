@@ -49,6 +49,17 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "is_active", "first_name", "last_name", "email", "groups", "user_permissions"]
 
 
+class UserProfileSerializer(UserSerializer):
+    """Serializer for the current user's own profile.
+
+    Only the name is editable: letting users write their own groups, permissions,
+    active flag or email would allow privilege escalation or account takeover.
+    """
+
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ["id", "is_active", "email", "groups", "user_permissions"]
+
+
 class TokenSerializer(serializers.ModelSerializer):
     token = serializers.CharField(source="key")
 

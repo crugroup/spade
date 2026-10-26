@@ -88,7 +88,7 @@ class FileUploadAdminForm(forms.ModelForm):
 class FileUploadAdmin(admin.ModelAdmin):
     form = FileUploadAdminForm
     list_display = ["file", "result", "user", "created_at"]
-    search_fields = ["file", "user"]
+    search_fields = ["file__code", "user__email", "name"]
     list_filter = ["result", "created_at"]
     readonly_fields = ["file", "created_at"]
 
