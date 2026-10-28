@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 from django.forms import ModelForm, PasswordInput
 from django.utils.safestring import mark_safe
 
@@ -81,7 +82,10 @@ class VariableSetAdmin(admin.ModelAdmin):
         ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
 
-    @admin.display(description="Variables Count")
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(_variable_count=Count("variables"))
+
+    @admin.display(description="Variables Count", ordering="_variable_count")
     def variable_count(self, obj):
         """Display the number of variables in the set."""
-        return obj.variables.count()
+        return obj._variable_count

@@ -121,6 +121,8 @@ class ProcessRun(RulesModel):
 
     class Meta:
         ordering = ("-pk",)
+        # Run history is read per process, newest first.
+        indexes = [models.Index(fields=["process", "-id"], name="processrun_process_id_desc")]
         rules_permissions = {
             "add": defer_rule("processes.add_processrun"),
             "view": defer_rule("processes.view_processrun"),

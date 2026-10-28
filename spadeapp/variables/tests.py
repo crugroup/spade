@@ -1,3 +1,4 @@
+import pytest
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
@@ -128,3 +129,14 @@ class VariableServiceTest(TestCase):
         self.assertEqual(merged["VAR1"], "value1")
         self.assertEqual(merged["VAR2"], "new_value2")  # Should be overridden
         self.assertEqual(merged["VAR3"], "value3")
+
+
+@pytest.mark.django_db
+def test_decrypt_failure_is_logged(caplog):
+    variable = Variable.objects.create(name="broken", value="gAAAAABnot-a-real-token", is_secret=True)
+
+    with caplog.at_level("ERROR", logger="spadeapp.variables.models"):
+        value = variable.get_decrypted_value()
+
+    assert value == "gAAAAABnot-a-real-token"
+    assert "Failed to decrypt secret variable broken" in caplog.text

@@ -1,4 +1,5 @@
 from allauth.account import app_settings as allauth_account_settings
+from allauth.account.adapter import get_adapter
 from allauth.account.utils import complete_signup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -19,6 +20,7 @@ from .serializers import (
     PermissionSerializer,
     RegisterUserSerializer,
     TokenSerializer,
+    UserProfileSerializer,
     UserSerializer,
 )
 
@@ -32,25 +34,26 @@ class RegisterUserView(generics.CreateAPIView):
     throttle_classes = [AnonRateThrottle]
     serializer_class = RegisterUserSerializer
 
+    def create(self, request, *args, **kwargs):
+        if not get_adapter(request).is_open_for_signup(request):
+            return Response({"detail": "Registration is closed."}, status=status.HTTP_403_FORBIDDEN)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         serializer.validated_data["password"] = make_password(serializer.validated_data["password"])
         user = serializer.save()
-        token = serializer.get_token(user)
-        serializer.validated_data["token"] = token
-        result = super().perform_create(serializer)
         complete_signup(
             self.request._request,
             user,
             allauth_account_settings.EMAIL_VERIFICATION,
             None,
         )
-        return result
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """Get and update user profile"""
 
-    serializer_class = UserSerializer
+    serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     throttle_classes = [UserRateThrottle]
 
@@ -63,7 +66,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     serializer_class = UserSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    queryset = User.objects.all()
+    queryset = User.objects.prefetch_related("groups", "user_permissions")
     search_fields = ("first_name", "last_name", "email")
     filterset_fields = ("first_name", "last_name", "email")
 
@@ -83,7 +86,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     serializer_class = GroupSerializer
     permission_classes = [permissions.DjangoModelPermissions]
-    queryset = Group.objects.all().order_by("name")
+    queryset = Group.objects.prefetch_related("permissions").order_by("name")
     search_fields = ("name",)
     filterset_fields = ("name",)
 
