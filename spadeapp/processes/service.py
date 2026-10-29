@@ -124,7 +124,8 @@ class ProcessService:
 
         provider_processes = [process for process in processes if process.executor.history_provider_callable]
         for process in provider_processes:
-            latest_run = next(iter(ProcessService.get_runs(process, request)), None)
+            runs = list(ProcessService.get_runs(process, request))
+            latest_run = ProcessService._select_representative_run(runs)
             if latest_run is not None:
                 latest_runs_by_process_id[process.id] = latest_run
 
@@ -149,6 +150,34 @@ class ProcessService:
             )
 
         return latest_runs_by_process_id
+
+    @staticmethod
+    def _select_representative_run(runs: list[ProcessRun]) -> ProcessRun | None:
+        if not runs:
+            return None
+
+        latest_by_dag: dict[str | None, ProcessRun] = {}
+        for run in runs:
+            dag_id = (run.output or {}).get("dag_id")
+            if dag_id not in latest_by_dag:
+                latest_by_dag[dag_id] = run
+
+        if len(latest_by_dag) == 1:
+            return next(iter(latest_by_dag.values()))
+
+        return min(latest_by_dag.values(), key=ProcessService._run_priority)
+
+    @staticmethod
+    def _run_priority(run: ProcessRun) -> int:
+        status = (run.status or "").lower()
+        result = (run.result or "").lower() if run.result else ""
+        if status in ("failed", "error") or result == "failed":
+            return 0
+        if status in ("running", "new"):
+            return 1
+        if result == "warning":
+            return 2
+        return 3
 
     @staticmethod
     def run_process(process: Process, user, user_params: str) -> ProcessRun:
