@@ -8,6 +8,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
 from spadeapp.processes.models import Executor, Process, ProcessRun
+from spadeapp.processes.service import ProcessService
 from spadeapp.users.tests.factories import UserFactory
 from spadeapp.utils.permissions import SpadePermissionManager, permission_manager_cache
 
@@ -203,3 +204,53 @@ class TestProcessRunHistory:
             client.get(self._url(provider_process))
 
         get_variables.assert_called_once()
+
+
+class TestSelectRepresentativeRun:
+    def _run(self, *, dag_id, status, result=None):
+        return ProcessRun(output={"dag_id": dag_id}, status=status, result=result)
+
+    def test_no_runs_returns_none(self):
+        assert ProcessService._select_representative_run([]) is None
+
+    def test_single_dag_returns_its_run(self):
+        run = self._run(dag_id="a", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS)
+
+        assert ProcessService._select_representative_run([run]) is run
+
+    def test_older_failure_on_one_dag_not_masked_by_newer_success_on_another(self):
+        older_failure = self._run(dag_id="a", status=ProcessRun.Statuses.ERROR, result=ProcessRun.Results.FAILED)
+        newer_success = self._run(dag_id="b", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS)
+
+        result = ProcessService._select_representative_run([newer_success, older_failure])
+
+        assert result is older_failure
+
+    def test_all_dags_succeeding_returns_success(self):
+        runs = [
+            self._run(dag_id="a", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS),
+            self._run(dag_id="b", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS),
+        ]
+
+        result = ProcessService._select_representative_run(runs)
+
+        assert result.result == ProcessRun.Results.SUCCESS
+
+    def test_running_dag_takes_priority_over_succeeded_dag(self):
+        running = self._run(dag_id="a", status=ProcessRun.Statuses.RUNNING)
+        succeeded = self._run(dag_id="b", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS)
+
+        result = ProcessService._select_representative_run([succeeded, running])
+
+        assert result is running
+
+    def test_only_each_dags_latest_run_is_considered(self):
+        newest_a_success = self._run(
+            dag_id="a", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS
+        )
+        older_a_failure = self._run(dag_id="a", status=ProcessRun.Statuses.ERROR, result=ProcessRun.Results.FAILED)
+        b_running = self._run(dag_id="b", status=ProcessRun.Statuses.RUNNING)
+
+        result = ProcessService._select_representative_run([newest_a_success, b_running, older_a_failure])
+
+        assert result is b_running
