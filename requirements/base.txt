@@ -21,7 +21,7 @@ djangorestframework-simplejwt==5.5.1
 # DRF-spectacular for api documentation
 drf-spectacular>=0.30.0  # https://github.com/tfranzel/drf-spectacular
 
-django-taggit==6.1.0
+django-taggit==7.0.0
 django-filter==26.2  # https://github.com/carltongibson/django-filter
 
 # django-rules
