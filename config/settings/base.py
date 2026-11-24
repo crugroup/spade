@@ -341,4 +341,7 @@ SPADE_PROCESS_EXECUTORS: dict[str, object] = {}
 
 SPADE_HISTORY_PROVIDERS: dict[str, object] = {}
 
+# History providers are queried concurrently when loading runs for many processes.
+SPADE_HISTORY_PROVIDER_MAX_WORKERS = env.int("SPADE_HISTORY_PROVIDER_MAX_WORKERS", default=8)
+
 SPADE_PERMISSION_MANAGER = env("SPADE_PERMISSION_MANAGER", default="spadeapp.utils.permissions.SpadePermissionManager")
