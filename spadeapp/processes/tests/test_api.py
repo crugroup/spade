@@ -313,3 +313,41 @@ def test_latest_runs_fetches_provider_processes_concurrently(client_for, user, s
 
     assert {item["process_id"] for item in body} == {process.id for process in processes}
     assert all(item["latest_run"] is not None for item in body)
+
+
+@pytest.mark.django_db
+def test_latest_runs_requests_only_the_latest_run(client_for, user, provider_process, settings):
+    settings.SPADE_HISTORY_PROVIDER_MAX_WORKERS = 1
+
+    with mock.patch(
+        "spadeapp.examples.history_provider.ExampleHistoryProvider.get_runs", return_value=[]
+    ) as provider_get_runs:
+        client_for(user).get(f"/api/v1/processes/latest_runs?ids={provider_process.id}")
+
+    assert provider_get_runs.call_args.kwargs.get("latest_only") is True
+
+
+@pytest.mark.django_db
+def test_history_endpoint_requests_full_history(client_for, user, provider_process):
+    with mock.patch(
+        "spadeapp.examples.history_provider.ExampleHistoryProvider.get_runs", return_value=[]
+    ) as provider_get_runs:
+        client_for(user).get(f"/api/v1/processruns?process={provider_process.id}")
+
+    assert provider_get_runs.call_args.kwargs.get("latest_only") is not True
+
+
+def test_history_cache_key_separates_latest_from_full():
+    class Request:
+        def __init__(self):
+            self.GET = {}
+            self.user = type("User", (), {"id": 7})()
+
+    process = type(
+        "Process", (), {"id": 11, "executor": type("Executor", (), {"history_provider_callable": "provider"})()}
+    )()
+
+    latest = ProcessService._get_history_cache_key(process, Request(), latest_only=True)
+    full = ProcessService._get_history_cache_key(process, Request())
+
+    assert latest != full

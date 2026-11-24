@@ -30,7 +30,7 @@ _HISTORY_CACHE_IGNORED_PARAMS = frozenset({"ids", "process", "page", "page_size"
 
 class ProcessService:
     @staticmethod
-    def _get_history_cache_key(process: Process, request) -> str | None:
+    def _get_history_cache_key(process: Process, request, *, latest_only: bool = False) -> str | None:
         if request is None:
             return None
 
@@ -50,6 +50,7 @@ class ProcessService:
                 str(process.id),
                 str(user_id),
                 process.executor.history_provider_callable or "local",
+                "latest" if latest_only else "full",
                 query_string,
             ]
         )
@@ -199,7 +200,9 @@ class ProcessService:
     @staticmethod
     def _get_latest_run_for_provider_process(process: Process, request) -> ProcessRun | None:
         try:
-            return ProcessService._select_representative_run(list(ProcessService.get_runs(process, request)))
+            return ProcessService._select_representative_run(
+                list(ProcessService.get_runs(process, request, latest_only=True))
+            )
         finally:
             # Worker threads get their own DB connection; release it so a burst of
             # requests cannot exhaust the database's connection limit.
@@ -329,7 +332,8 @@ class ProcessService:
             history_provider = settings.SPADE_HISTORY_PROVIDERS[object_key]
 
         cache_timeout = getattr(settings, "SPADE_HISTORY_PROVIDER_CACHE_TIMEOUT", 60)
-        cache_key = ProcessService._get_history_cache_key(process, request)
+        latest_only = bool(kwargs.get("latest_only", False))
+        cache_key = ProcessService._get_history_cache_key(process, request, latest_only=latest_only)
         cached_runs = cache.get(cache_key) if cache_key and cache_timeout > 0 else None
 
         if cached_runs is None:
