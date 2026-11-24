@@ -1,9 +1,12 @@
 import logging
 import typing
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.db import close_old_connections
 from django.db.models import OuterRef, Subquery
 from spadesdk.executor import Executor
 from spadesdk.executor import Process as SDKProcess
@@ -21,21 +24,33 @@ User = get_user_model()
 
 LATEST_RUNS_VERSION_KEY = "latest-runs-version"
 
+# Params that select/paginate rows here rather than change what a history provider returns.
+_HISTORY_CACHE_IGNORED_PARAMS = frozenset({"ids", "process", "page", "page_size", "ordering"})
+
 
 class ProcessService:
     @staticmethod
-    def _get_history_cache_key(process: Process, request) -> str | None:
+    def _get_history_cache_key(process: Process, request, *, latest_only: bool = False) -> str | None:
         if request is None:
             return None
 
         user_id = getattr(getattr(request, "user", None), "id", "anon")
-        query_string = request.GET.urlencode() if hasattr(request, "GET") else ""
+        # Only params that can change what the provider returns belong in the key.
+        # Process selection, pagination and ordering are applied by the caller, so
+        # including them here would make every page/filter a separate cache entry
+        # (e.g. adding one process would invalidate the history of all the others).
+        query_string = ""
+        if hasattr(request, "GET"):
+            query_string = urlencode(
+                sorted((key, value) for key, value in request.GET.items() if key not in _HISTORY_CACHE_IGNORED_PARAMS)
+            )
         return ":".join(
             [
                 "process-runs",
                 str(process.id),
                 str(user_id),
                 process.executor.history_provider_callable or "local",
+                "latest" if latest_only else "full",
                 query_string,
             ]
         )
@@ -123,10 +138,10 @@ class ProcessService:
             )
 
         provider_processes = [process for process in processes if process.executor.history_provider_callable]
-        for process in provider_processes:
-            latest_run = next(iter(ProcessService.get_runs(process, request)), None)
-            if latest_run is not None:
-                latest_runs_by_process_id[process.id] = latest_run
+        if provider_processes:
+            latest_runs_by_process_id.update(
+                ProcessService._get_latest_runs_for_provider_processes(provider_processes, request)
+            )
 
         if cache_key and cache_timeout > 0:
             cache.set(
@@ -149,6 +164,77 @@ class ProcessService:
             )
 
         return latest_runs_by_process_id
+
+    @staticmethod
+    def _get_latest_runs_for_provider_processes(provider_processes: list[Process], request) -> dict[int, ProcessRun]:
+        """Get the latest run for each provider-backed process, fetching concurrently.
+
+        Each provider lookup is a remote API round-trip, so doing them one by one
+        makes ``latest_runs`` take as long as the sum of every process's history call.
+        """
+        max_workers = getattr(settings, "SPADE_HISTORY_PROVIDER_MAX_WORKERS", 8)
+        latest_runs: dict[int, ProcessRun] = {}
+        if max_workers <= 1 or len(provider_processes) == 1:
+            for process in provider_processes:
+                latest_run = ProcessService._get_latest_run_for_provider_process(process, request)
+                if latest_run is not None:
+                    latest_runs[process.id] = latest_run
+            return latest_runs
+
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(provider_processes))) as pool:
+            futures = {
+                pool.submit(ProcessService._get_latest_run_for_provider_process, process, request): process
+                for process in provider_processes
+            }
+            for future in as_completed(futures):
+                process = futures[future]
+                try:
+                    latest_run = future.result()
+                except Exception:
+                    logger.exception("Failed to load history for process %s", process.code)
+                    continue
+                if latest_run is not None:
+                    latest_runs[process.id] = latest_run
+        return latest_runs
+
+    @staticmethod
+    def _get_latest_run_for_provider_process(process: Process, request) -> ProcessRun | None:
+        try:
+            return ProcessService._select_representative_run(
+                list(ProcessService.get_runs(process, request, latest_only=True))
+            )
+        finally:
+            # Worker threads get their own DB connection; release it so a burst of
+            # requests cannot exhaust the database's connection limit.
+            close_old_connections()
+
+    @staticmethod
+    def _select_representative_run(runs: list[ProcessRun]) -> ProcessRun | None:
+        if not runs:
+            return None
+
+        latest_by_dag: dict[str | None, ProcessRun] = {}
+        for run in runs:
+            dag_id = (run.output or {}).get("dag_id")
+            if dag_id not in latest_by_dag:
+                latest_by_dag[dag_id] = run
+
+        if len(latest_by_dag) == 1:
+            return next(iter(latest_by_dag.values()))
+
+        return min(latest_by_dag.values(), key=ProcessService._run_priority)
+
+    @staticmethod
+    def _run_priority(run: ProcessRun) -> int:
+        status = (run.status or "").lower()
+        result = (run.result or "").lower() if run.result else ""
+        if status in ("failed", "error") or result == "failed":
+            return 0
+        if status in ("running", "new"):
+            return 1
+        if result == "warning":
+            return 2
+        return 3
 
     @staticmethod
     def run_process(process: Process, user, user_params: str) -> ProcessRun:
@@ -246,7 +332,8 @@ class ProcessService:
             history_provider = settings.SPADE_HISTORY_PROVIDERS[object_key]
 
         cache_timeout = getattr(settings, "SPADE_HISTORY_PROVIDER_CACHE_TIMEOUT", 60)
-        cache_key = ProcessService._get_history_cache_key(process, request)
+        latest_only = bool(kwargs.get("latest_only", False))
+        cache_key = ProcessService._get_history_cache_key(process, request, latest_only=latest_only)
         cached_runs = cache.get(cache_key) if cache_key and cache_timeout > 0 else None
 
         if cached_runs is None:
