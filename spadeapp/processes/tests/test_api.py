@@ -8,6 +8,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
 from spadeapp.processes.models import Executor, Process, ProcessRun
+from spadeapp.processes.service import ProcessService
 from spadeapp.users.tests.factories import UserFactory
 from spadeapp.utils.permissions import SpadePermissionManager, permission_manager_cache
 
@@ -203,3 +204,150 @@ class TestProcessRunHistory:
             client.get(self._url(provider_process))
 
         get_variables.assert_called_once()
+
+
+class TestSelectRepresentativeRun:
+    def _run(self, *, dag_id, status, result=None):
+        return ProcessRun(output={"dag_id": dag_id}, status=status, result=result)
+
+    def test_no_runs_returns_none(self):
+        assert ProcessService._select_representative_run([]) is None
+
+    def test_single_dag_returns_its_run(self):
+        run = self._run(dag_id="a", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS)
+
+        assert ProcessService._select_representative_run([run]) is run
+
+    def test_older_failure_on_one_dag_not_masked_by_newer_success_on_another(self):
+        older_failure = self._run(dag_id="a", status=ProcessRun.Statuses.ERROR, result=ProcessRun.Results.FAILED)
+        newer_success = self._run(dag_id="b", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS)
+
+        result = ProcessService._select_representative_run([newer_success, older_failure])
+
+        assert result is older_failure
+
+    def test_all_dags_succeeding_returns_success(self):
+        runs = [
+            self._run(dag_id="a", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS),
+            self._run(dag_id="b", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS),
+        ]
+
+        result = ProcessService._select_representative_run(runs)
+
+        assert result.result == ProcessRun.Results.SUCCESS
+
+    def test_running_dag_takes_priority_over_succeeded_dag(self):
+        running = self._run(dag_id="a", status=ProcessRun.Statuses.RUNNING)
+        succeeded = self._run(dag_id="b", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS)
+
+        result = ProcessService._select_representative_run([succeeded, running])
+
+        assert result is running
+
+    def test_only_each_dags_latest_run_is_considered(self):
+        newest_a_success = self._run(
+            dag_id="a", status=ProcessRun.Statuses.FINISHED, result=ProcessRun.Results.SUCCESS
+        )
+        older_a_failure = self._run(dag_id="a", status=ProcessRun.Statuses.ERROR, result=ProcessRun.Results.FAILED)
+        b_running = self._run(dag_id="b", status=ProcessRun.Statuses.RUNNING)
+
+        result = ProcessService._select_representative_run([newest_a_success, b_running, older_a_failure])
+
+        assert result is b_running
+
+
+class TestLatestRunsProviderCaching:
+    def _provider_process(self, code):
+        executor, _ = Executor.objects.get_or_create(
+            name="provider", callable=EXAMPLE_EXECUTOR, history_provider_callable=EXAMPLE_HISTORY_PROVIDER
+        )
+        return Process.objects.create(code=code, executor=executor)
+
+    def test_different_id_sets_reuse_provider_cache(self, client_for, user, settings):
+        # Sequential so the transactional test data is visible to every lookup.
+        settings.SPADE_HISTORY_PROVIDER_MAX_WORKERS = 1
+        first = self._provider_process("cache-first")
+        second = self._provider_process("cache-second")
+        client = client_for(user)
+
+        with mock.patch(
+            "spadeapp.processes.service.VariableService.get_variables_for_process_instance", return_value=[]
+        ) as get_variables:
+            client.get(f"/api/v1/processes/latest_runs?ids={first.id}")
+            body = client.get(f"/api/v1/processes/latest_runs?ids={first.id},{second.id}").json()
+
+        # ``first`` is fetched once then reused for the larger id set; ``second`` is fetched once.
+        assert get_variables.call_count == 2  # noqa: PLR2004
+        assert {item["process_id"] for item in body} == {first.id, second.id}
+        assert all(item["latest_run"] is not None for item in body)
+
+    def test_history_cache_key_ignores_selection_and_pagination(self):
+        class Request:
+            def __init__(self, params):
+                self.GET = params
+                self.user = type("User", (), {"id": 7})()
+
+        process = type(
+            "Process", (), {"id": 11, "executor": type("Executor", (), {"history_provider_callable": "provider"})()}
+        )()
+
+        keys = {
+            ProcessService._get_history_cache_key(process, Request({"ids": "1,2,3"})),
+            ProcessService._get_history_cache_key(process, Request({"process": "11", "page": "2", "ordering": "-id"})),
+            ProcessService._get_history_cache_key(process, Request({})),
+        }
+
+        assert len(keys) == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_latest_runs_fetches_provider_processes_concurrently(client_for, user, settings):
+    settings.SPADE_HISTORY_PROVIDER_MAX_WORKERS = 4
+    executor = Executor.objects.create(
+        name="provider", callable=EXAMPLE_EXECUTOR, history_provider_callable=EXAMPLE_HISTORY_PROVIDER
+    )
+    processes = [Process.objects.create(code=f"parallel-{index}", executor=executor) for index in range(5)]
+    ids = ",".join(str(process.id) for process in processes)
+
+    body = client_for(user).get(f"/api/v1/processes/latest_runs?ids={ids}").json()
+
+    assert {item["process_id"] for item in body} == {process.id for process in processes}
+    assert all(item["latest_run"] is not None for item in body)
+
+
+@pytest.mark.django_db
+def test_latest_runs_requests_only_the_latest_run(client_for, user, provider_process, settings):
+    settings.SPADE_HISTORY_PROVIDER_MAX_WORKERS = 1
+
+    with mock.patch(
+        "spadeapp.examples.history_provider.ExampleHistoryProvider.get_runs", return_value=[]
+    ) as provider_get_runs:
+        client_for(user).get(f"/api/v1/processes/latest_runs?ids={provider_process.id}")
+
+    assert provider_get_runs.call_args.kwargs.get("latest_only") is True
+
+
+@pytest.mark.django_db
+def test_history_endpoint_requests_full_history(client_for, user, provider_process):
+    with mock.patch(
+        "spadeapp.examples.history_provider.ExampleHistoryProvider.get_runs", return_value=[]
+    ) as provider_get_runs:
+        client_for(user).get(f"/api/v1/processruns?process={provider_process.id}")
+
+    assert provider_get_runs.call_args.kwargs.get("latest_only") is not True
+
+
+def test_history_cache_key_separates_latest_from_full():
+    class Request:
+        def __init__(self):
+            self.GET = {}
+            self.user = type("User", (), {"id": 7})()
+
+    process = type(
+        "Process", (), {"id": 11, "executor": type("Executor", (), {"history_provider_callable": "provider"})()}
+    )()
+
+    latest = ProcessService._get_history_cache_key(process, Request(), latest_only=True)
+    full = ProcessService._get_history_cache_key(process, Request())
+
+    assert latest != full

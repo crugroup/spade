@@ -1,6 +1,6 @@
 -r base.txt
 
-gunicorn==26.2.0  # https://github.com/benoitc/gunicorn
+gunicorn==27.0.1  # https://github.com/benoitc/gunicorn
 
 
 # Django
